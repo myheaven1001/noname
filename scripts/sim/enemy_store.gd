@@ -18,6 +18,7 @@ var pos := PackedVector2Array()
 var prev_pos := PackedVector2Array()  # vị trí tick trước, để nội suy khi vẽ
 var vel := PackedVector2Array()
 var knock := PackedVector2Array()  # vận tốc đẩy lùi, tắt dần
+var sep := PackedVector2Array()  # lực tách khỏi hàng xóm, tính lại mỗi 2 tick
 var dir := PackedVector2Array()  # hướng đòn đã khoá (vd. hướng lao)
 var facing := PackedFloat32Array()  # 1 hoặc -1, để lật sprite
 var hp := PackedFloat32Array()
@@ -38,6 +39,7 @@ func _init(cap: int) -> void:
 	prev_pos.resize(cap)
 	vel.resize(cap)
 	knock.resize(cap)
+	sep.resize(cap)
 	dir.resize(cap)
 	facing.resize(cap)
 	hp.resize(cap)
@@ -63,6 +65,7 @@ func spawn(t: int, p: Vector2, health: float) -> int:
 	prev_pos[i] = p
 	vel[i] = Vector2.ZERO
 	knock[i] = Vector2.ZERO
+	sep[i] = Vector2.ZERO
 	dir[i] = Vector2.RIGHT
 	facing[i] = 1.0
 	hp[i] = health
@@ -88,6 +91,7 @@ func remove(i: int) -> void:
 	prev_pos[i] = prev_pos[last]
 	vel[i] = vel[last]
 	knock[i] = knock[last]
+	sep[i] = sep[last]
 	dir[i] = dir[last]
 	facing[i] = facing[last]
 	hp[i] = hp[last]

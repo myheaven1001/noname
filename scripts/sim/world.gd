@@ -7,7 +7,8 @@ extends RefCounted
 const TICK_RATE := 30
 const DT := 1.0 / TICK_RATE
 const ARENA := Vector2(4096, 4096)
-const CELL := 64.0
+const CELL := 64.0  # ô của flow field
+const GRID_CELL := 48.0  # ô của spatial hash: ≥ 2 × bán kính quái lớn nhất để 3x3 ô đủ bắt mọi cặp chồng lấn
 const MAX_ENEMIES := 4096
 const MAX_ATTACKERS := 6  # số quái được gồng/lao cùng lúc, để người chơi còn né được
 const SPAWN_PER_TICK := 40
@@ -15,7 +16,8 @@ const SPAWN_MIN := 700.0
 const SPAWN_MAX := 950.0
 const DESPAWN_DIST := 1500.0
 const FLOW_EVERY := 9  # tick (~0,3 giây)
-const MAX_NEIGHBORS := 10  # giới hạn hàng xóm xét khi tách nhau, giữ chi phí O(n) khi quái dồn cục
+const MAX_NEIGHBORS := 10  # số hàng xóm chồng lấn tối đa cộng vào lực tách
+const MAX_CANDIDATES := 24  # số hàng xóm tối đa phải xét, giữ chi phí O(n) khi quái dồn đặc
 const SEPARATION := 0.5
 const KNOCKBACK := 160.0
 const KNOCK_DECAY := 0.75
@@ -80,7 +82,7 @@ func _init(p_db: EnemyDB, seed_value := 1) -> void:
 	db = p_db
 	rng.seed = seed_value
 	store = EnemyStore.new(MAX_ENEMIES)
-	grid = SpatialHash.new(ARENA, CELL, MAX_ENEMIES)
+	grid = SpatialHash.new(ARENA, GRID_CELL, MAX_ENEMIES)
 	flow = FlowField.new(ARENA, CELL)
 	proj_pos.resize(MAX_PROJ)
 	proj_prev.resize(MAX_PROJ)
@@ -133,8 +135,14 @@ func chase(i: int, spd: float) -> void:
 		s.vel[i] = Vector2.ZERO
 		return
 	var to := players[tgt].pos - p
+	var dist2 := to.length_squared()
+	var touch := PLAYER_RADIUS + db.radius[s.type[i]]
+	if dist2 < touch * touch:
+		# Đã chạm người chơi: đứng lại vây quanh thay vì dồn đống vào tâm.
+		s.vel[i] = s.vel[i].lerp(Vector2.ZERO, 0.5)
+		return
 	var d := flow.dir_at(p)
-	if d == Vector2.ZERO or to.length_squared() < CELL * CELL * 2.25:
+	if d == Vector2.ZERO or dist2 < CELL * CELL * 2.25:
 		d = to.normalized()
 	s.vel[i] = s.vel[i].lerp(d * spd, 0.25)
 
@@ -257,6 +265,11 @@ func _update_enemies() -> void:
 	var type := s.type
 	var beh := db.behavior
 	var spd := db.speed
+	var radius := db.radius
+	var pos := s.pos
+	var target := s.target
+	var n_players := players.size()
+	var close2 := CELL * CELL * 2.25
 	attackers = 0
 	for i in n:
 		if state[i] == EnemyStore.S_WINDUP or state[i] == EnemyStore.S_DASH:
@@ -275,11 +288,30 @@ func _update_enemies() -> void:
 		if not ai_enabled:
 			vel[i] = Vector2.ZERO
 			continue
-		match beh[type[i]]:
-			EnemyDB.BEHAVIOR_WOLF:
-				WolfBehavior.tick(self, i)
-			_:
-				chase(i, spd[type[i]])
+		if beh[type[i]] == EnemyDB.BEHAVIOR_WOLF:
+			WolfBehavior.tick(self, i)
+			continue
+		# Đuổi theo (giống chase(), viết thẳng vào vòng lặp vì đây là đường nóng nhất).
+		var p := pos[i]
+		var tgt := 0
+		if n_players > 1:
+			tgt = nearest_player(p)
+		elif n_players == 0:
+			tgt = -1
+		target[i] = tgt
+		if tgt < 0:
+			vel[i] = Vector2.ZERO
+			continue
+		var to := players[tgt].pos - p
+		var dist2 := to.length_squared()
+		var touch := PLAYER_RADIUS + radius[type[i]]
+		if dist2 < touch * touch:
+			vel[i] = vel[i].lerp(Vector2.ZERO, 0.5)
+			continue
+		var d := flow.dir_at(p)
+		if d == Vector2.ZERO or dist2 < close2:
+			d = to.normalized()
+		vel[i] = vel[i].lerp(d * spd[type[i]], 0.25)
 
 
 func _cancel_attack(i: int) -> void:
@@ -297,6 +329,7 @@ func _move_enemies() -> void:
 	var knock := s.knock
 	var type := s.type
 	var facing := s.facing
+	var sep := s.sep
 	var radius := db.radius
 	var start := grid.cell_start
 	var items := grid.items
@@ -304,46 +337,61 @@ func _move_enemies() -> void:
 	var rows := grid.rows
 	var inv := grid.inv_cell
 	var rock_at := flow.rock_at
+	var rock_inv := flow.inv_cell
+	var rock_cols := flow.cols
+	var rock_rows := flow.rows
 	var lo := Vector2(8, 8)
 	var hi := ARENA - lo
+	var parity := tick & 1
 	for i in n:
 		var p := pos[i]
 		var r := radius[type[i]]
-		var cx := clampi(int(p.x * inv), 0, cols - 1)
-		var cy := clampi(int(p.y * inv), 0, rows - 1)
-		# Tách nhau: đẩy khỏi hàng xóm chồng lấn trong 3x3 ô.
-		var push := Vector2.ZERO
-		var seen := 0
-		for gy in range(maxi(cy - 1, 0), mini(cy + 2, rows)):
-			for gx in range(maxi(cx - 1, 0), mini(cx + 2, cols)):
+		# Tách nhau: mỗi con tính lại lực tách mỗi 2 tick (xen kẽ theo chẵn/lẻ), tick kia dùng lại.
+		# Lực tách là hiệu ứng mềm nên trễ 1 tick không nhìn thấy được, còn chi phí giảm một nửa.
+		if (i & 1) == parity:
+			var cx := clampi(int(p.x * inv), 0, cols - 1)
+			var cy := clampi(int(p.y * inv), 0, rows - 1)
+			var push := Vector2.ZERO
+			var seen := 0
+			var budget := MAX_CANDIDATES
+			# Duyệt 9 ô bắt đầu từ một ô xoay vòng theo (i, tick): khi hết ngân sách giữa chừng,
+			# phần bị bỏ qua đổi hướng liên tục nên không làm cả đám trôi lệch về một phía.
+			var first := (i * 7 + tick) % 9
+			for q in 9:
+				var o := first + q
+				if o >= 9:
+					o -= 9
+				var gx := cx + o % 3 - 1
+				@warning_ignore("integer_division")
+				var gy := cy + o / 3 - 1
+				if gx < 0 or gy < 0 or gx >= cols or gy >= rows:
+					continue
 				var c := gy * cols + gx
 				for k in range(start[c], start[c + 1]):
 					var j := items[k]
-					if j == i:
-						continue
+					budget -= 1
 					var d := p - pos[j]
 					var rr := r + radius[type[j]]
 					var d2 := d.length_squared()
-					if d2 >= rr * rr:
-						continue
-					if d2 < 0.0001:
-						push += Vector2.from_angle(float(i)) * (rr * 0.5)
-					else:
-						var dl := sqrt(d2)
-						push += d * ((rr - dl) / dl)
-					seen += 1
-					if seen >= MAX_NEIGHBORS:
+					if d2 < rr * rr and j != i:
+						if d2 < 0.0001:
+							push += Vector2.from_angle(float(i)) * (rr * 0.5)
+						else:
+							var dl := sqrt(d2)
+							push += d * ((rr - dl) / dl)
+						seen += 1
+					if seen >= MAX_NEIGHBORS or budget <= 0:
 						break
-				if seen >= MAX_NEIGHBORS:
+				if seen >= MAX_NEIGHBORS or budget <= 0:
 					break
-			if seen >= MAX_NEIGHBORS:
-				break
+			sep[i] = push
 		var v := vel[i] + knock[i]
 		knock[i] = knock[i] * KNOCK_DECAY
 		if absf(v.x) > 5.0:
 			facing[i] = signf(v.x)
-		var np := p + v * DT + push * SEPARATION
-		var rk := rock_at[cy * cols + cx]
+		var np := p + v * DT + sep[i] * SEPARATION
+		var rk := rock_at[clampi(int(p.y * rock_inv), 0, rock_rows - 1) * rock_cols
+			+ clampi(int(p.x * rock_inv), 0, rock_cols - 1)]
 		if rk > 0:
 			np = _push_out_rock(np, r, rk - 1)
 		pos[i] = np.clamp(lo, hi)
