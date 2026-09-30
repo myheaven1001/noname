@@ -20,6 +20,16 @@ godot --headless --path . -s res://tools/bench.gd
 SHOT=shot.png FRAMES=900 xvfb-run -a godot --path . --rendering-driver opengl3 -s res://tools/screenshot.gd
 ```
 
+### Bản web
+
+```bash
+GODOT=/đường/dẫn/godot tools/build_web.sh   # cần export template 4.4.1 (web_nothreads_release.zip)
+```
+
+Kết quả nằm trong `build/web/`. `play.html` (từ `web/play.html`) là trang chơi riêng: engine được
+nén gzip thành `engine.gz.wasm` (~9MB thay vì ~42MB) và trang tự giải nén bằng `DecompressionStream`.
+Export tắt đa luồng nên không cần header cross-origin isolation.
+
 `data/enemies.csv.import` đặt importer là `keep`: mặc định Godot coi `.csv` là bảng dịch và
 **không** đóng gói file gốc khi export (web/mobile sẽ không đọc được bảng quái). Mọi file CSV dữ liệu
 mới cũng cần một file `.import` như vậy.
