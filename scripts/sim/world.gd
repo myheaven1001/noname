@@ -22,7 +22,11 @@ const SEPARATION := 0.5
 const KNOCKBACK := 160.0
 const KNOCK_DECAY := 0.75
 const HP_PER_EXTRA_PLAYER := 0.6
-const HP_PER_MINUTE := 0.1
+const HP_PER_MINUTE := 0.25
+# Quân số tăng dần khi bật wave_ramp (cảnh chơi); bench và các test đặt target_population cố định.
+const WAVE_START := 60
+const WAVE_PER_MINUTE := 70.0
+const WAVE_MAX := 500
 
 const PLAYER_SPEED := 190.0
 const PLAYER_RADIUS := 16.0
@@ -30,13 +34,17 @@ const PLAYER_HP := 100.0
 const PLAYER_IFRAMES := 0.5
 
 const MAX_PROJ := 512
-const PROJ_SPEED := 900.0
 const PROJ_LIFE := 0.8
-const PROJ_DMG := 12.0
 const PROJ_RADIUS := 6.0
-const PROJ_PIERCE := 1
-const FIRE_INTERVAL := 0.12
-const FIRE_RANGE := 520.0
+
+const MAX_DROPS := 1500
+const PICKUP_RADIUS := 22.0
+const PULL_SPEED := 250.0
+const PULL_ACCEL := 1500.0
+const PULL_MAX_SPEED := 1100.0
+
+const MAX_STRIKES := 64
+const STRIKE_ENEMY_MULT := 3.0  # thiên lôi đánh quái mạnh gấp 3 lần đánh người
 
 
 class PlayerState:
@@ -46,12 +54,30 @@ class PlayerState:
 	var input := Vector2.ZERO
 	var hp := 0.0
 	var iframes := 0.0
-	var fire_cd := 0.0
 	var deaths := 0
+	# Tu luyện (xem Progression)
+	var realm := 0  # chỉ số dòng trong realms.csv
+	var qi := 0.0  # linh khí trong tầng hiện tại
+	var max_hp := 0.0
+	var dmg_mult := 1.0
+	var move_mult := 1.0
+	var magnet := 0.0  # bán kính hút vật phẩm
+	var stones := 0  # linh thạch
+	var immortal := 0  # tiên linh thạch
+	var skills := {}  # id kỹ năng -> cấp
+	var cd := {}  # id kỹ năng -> hồi chiêu còn lại
+	var offer := PackedStringArray()  # lượt chọn kỹ năng đang chờ (rỗng = không có)
+	var pending_offers := 0  # số lượt chọn còn xếp hàng sau lượt hiện tại
+	var trib_level := 0  # 0 = không độ kiếp; 1/2 = tiểu/đại thiên kiếp đang diễn ra
+	var trib_time := 0.0
+	var trib_next := 0.0
 
 
 var db: EnemyDB
+var realms: RealmDB
+var skill_db: SkillDB
 var store: EnemyStore
+var drops: DropStore
 var grid: SpatialHash
 var flow: FlowField
 var players: Array[PlayerState] = []
@@ -60,10 +86,12 @@ var events: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var tick := 0
 var target_population := 500
+var wave_ramp := false
 var attackers := 0
 var kills := 0
 var ai_enabled := true
 var last_tick_usec := 0
+var scratch := PackedInt32Array()  # kết quả của query_enemies (bị ghi đè ở lần gọi sau)
 
 # Đạn kiếm khí của người chơi (SoA, mảng đặc).
 var proj_count := 0
@@ -71,8 +99,18 @@ var proj_pos := PackedVector2Array()
 var proj_prev := PackedVector2Array()
 var proj_vel := PackedVector2Array()
 var proj_life := PackedFloat32Array()
-var proj_pierce := PackedInt32Array()
+var proj_dmg := PackedFloat32Array()
+var proj_pierce := PackedInt32Array()  # số quái còn xuyên được sau lần trúng tới
 var proj_last_hit := PackedInt32Array()  # uid quái vừa trúng, tránh trúng lại cùng con
+
+# Tia thiên lôi đang chờ đánh xuống (SoA, mảng đặc). Client vẽ vòng cảnh báo từ đây.
+var strike_count := 0
+var strike_pos := PackedVector2Array()
+var strike_radius := PackedFloat32Array()
+var strike_dmg := PackedFloat32Array()
+var strike_timer := PackedFloat32Array()  # giây còn lại tới lúc đánh
+var strike_warn := PackedFloat32Array()  # tổng thời gian cảnh báo, để vẽ tiến độ
+var strike_owner := PackedInt32Array()  # người chơi đang độ kiếp
 
 var _total_weight := 0.0
 var _flow_sources := PackedVector2Array()
@@ -80,16 +118,27 @@ var _flow_sources := PackedVector2Array()
 
 func _init(p_db: EnemyDB, seed_value := 1) -> void:
 	db = p_db
+	realms = RealmDB.load_csv("res://data/realms.csv")
+	skill_db = SkillDB.load_csv("res://data/skills.csv")
 	rng.seed = seed_value
 	store = EnemyStore.new(MAX_ENEMIES)
+	drops = DropStore.new(MAX_DROPS)
 	grid = SpatialHash.new(ARENA, GRID_CELL, MAX_ENEMIES)
 	flow = FlowField.new(ARENA, CELL)
+	scratch.resize(256)
 	proj_pos.resize(MAX_PROJ)
 	proj_prev.resize(MAX_PROJ)
 	proj_vel.resize(MAX_PROJ)
 	proj_life.resize(MAX_PROJ)
+	proj_dmg.resize(MAX_PROJ)
 	proj_pierce.resize(MAX_PROJ)
 	proj_last_hit.resize(MAX_PROJ)
+	strike_pos.resize(MAX_STRIKES)
+	strike_radius.resize(MAX_STRIKES)
+	strike_dmg.resize(MAX_STRIKES)
+	strike_timer.resize(MAX_STRIKES)
+	strike_warn.resize(MAX_STRIKES)
+	strike_owner.resize(MAX_STRIKES)
 	for w in db.spawn_weight:
 		_total_weight += w
 	_make_rocks()
@@ -100,8 +149,8 @@ func add_player(p: Vector2) -> PlayerState:
 	pl.id = players.size()
 	pl.pos = p
 	pl.prev_pos = p
-	pl.hp = PLAYER_HP
 	players.append(pl)
+	Progression.init_player(self, pl)
 	return pl
 
 
@@ -110,15 +159,19 @@ func step() -> void:
 	tick += 1
 	events.clear()
 	_save_prev()
+	if wave_ramp:
+		target_population = mini(WAVE_MAX, WAVE_START + int(WAVE_PER_MINUTE * tick * DT / 60.0))
 	_spawn()
 	if tick % FLOW_EVERY == 1:
 		_rebuild_flow()
 	grid.rebuild(store.pos, store.count)  # hợp lệ tới _remove_dead_and_far()
 	_update_players()
+	_update_strikes()
 	_update_enemies()
 	_move_enemies()
 	_contact_damage()
 	_update_projectiles()
+	_update_drops()
 	_remove_dead_and_far()
 	last_tick_usec = Time.get_ticks_usec() - t0
 
@@ -171,6 +224,8 @@ func emit(kind: StringName, i: int, data := {}) -> void:
 
 func damage_enemy(j: int, dmg: float, from_dir: Vector2) -> void:
 	var s := store
+	if s.hp[j] <= 0.0:
+		return  # đã chết trong tick này (vd. trúng cả kiếm khí lẫn sét): không rơi đồ hai lần
 	s.hp[j] -= dmg
 	s.flash[j] = 0.12
 	# Siêu giáp khi đang lao: không bị đẩy lùi, cú lao không bị ngắt.
@@ -178,7 +233,101 @@ func damage_enemy(j: int, dmg: float, from_dir: Vector2) -> void:
 		s.knock[j] += from_dir * (KNOCKBACK / db.mass[s.type[j]])
 	if s.hp[j] <= 0.0:
 		kills += 1
-		emit(&"death", j)  # server sẽ sinh linh khí/linh thạch tại đây
+		emit(&"death", j)
+		_drop_loot(j)
+
+
+## Quái gần nhất còn sống trong tầm, -1 nếu không có.
+func nearest_enemy(p: Vector2, max_range: float) -> int:
+	var s := store
+	var start := grid.cell_start
+	var items := grid.items
+	var best := -1
+	var best_d2 := max_range * max_range
+	var box := grid.cell_box(p, max_range)
+	for cy in range(box.y, box.w + 1):
+		for cx in range(box.x, box.z + 1):
+			var c := cy * grid.cols + cx
+			for k in range(start[c], start[c + 1]):
+				var j := items[k]
+				if s.hp[j] <= 0.0:
+					continue
+				var d2 := p.distance_squared_to(s.pos[j])
+				if d2 < best_d2:
+					best_d2 = d2
+					best = j
+	return best
+
+
+## Ghi vào `scratch` chỉ số các quái còn sống chạm hình tròn (center, radius), trả về số lượng.
+func query_enemies(center: Vector2, radius: float) -> int:
+	var s := store
+	var start := grid.cell_start
+	var items := grid.items
+	var out := scratch
+	var cap := out.size()
+	var n := 0
+	var box := grid.cell_box(center, radius + db.max_radius + GRID_CELL * 0.5)
+	for cy in range(box.y, box.w + 1):
+		for cx in range(box.x, box.z + 1):
+			var c := cy * grid.cols + cx
+			for k in range(start[c], start[c + 1]):
+				var j := items[k]
+				if s.hp[j] <= 0.0:
+					continue
+				var rr := radius + db.radius[s.type[j]]
+				if center.distance_squared_to(s.pos[j]) >= rr * rr:
+					continue
+				out[n] = j
+				n += 1
+				if n >= cap:
+					return n
+	return n
+
+
+## Bắn một luồng kiếm khí. `pierce` = tổng số quái luồng này trúng được.
+func fire(from: Vector2, d: Vector2, spd: float, dmg: float, pierce: int) -> void:
+	if proj_count >= MAX_PROJ:
+		return
+	var k := proj_count
+	proj_count += 1
+	proj_pos[k] = from
+	proj_prev[k] = from
+	proj_vel[k] = d * spd
+	proj_life[k] = PROJ_LIFE
+	proj_dmg[k] = dmg
+	proj_pierce[k] = pierce - 1
+	proj_last_hit[k] = -1
+
+
+## Thêm một tia thiên lôi: cảnh báo `warn` giây rồi đánh xuống vùng (pos, radius).
+func add_strike(p: Vector2, radius: float, dmg: float, warn: float, owner_id: int) -> void:
+	if strike_count >= MAX_STRIKES:
+		return
+	var k := strike_count
+	strike_count += 1
+	strike_pos[k] = p
+	strike_radius[k] = radius
+	strike_dmg[k] = dmg
+	strike_timer[k] = warn
+	strike_warn[k] = warn
+	strike_owner[k] = owner_id
+	events.append({&"t": &"strike_warn", &"pos": p, &"radius": radius, &"delay": warn, &"player": owner_id})
+
+
+func has_strikes_of(owner_id: int) -> bool:
+	for k in strike_count:
+		if strike_owner[k] == owner_id:
+			return true
+	return false
+
+
+func clear_strikes_of(owner_id: int) -> void:
+	var k := strike_count - 1
+	while k >= 0:
+		if strike_owner[k] == owner_id:
+			_remove_strike(k)
+		k -= 1
 
 
 ## Choáng/đóng băng mọi quái trong bán kính (dùng để test huỷ đòn đang gồng).
@@ -205,6 +354,10 @@ func _save_prev() -> void:
 		pl.prev_pos = pl.pos
 	for k in proj_count:
 		proj_prev[k] = proj_pos[k]
+	var dpos := drops.pos
+	var dprev := drops.prev_pos
+	for i in drops.count:
+		dprev[i] = dpos[i]
 
 
 func _spawn() -> void:
@@ -244,13 +397,48 @@ func _rebuild_flow() -> void:
 func _update_players() -> void:
 	for pl: PlayerState in players:
 		pl.iframes = maxf(pl.iframes - DT, 0.0)
-		pl.pos = _resolve_static(pl.pos + pl.input.limit_length(1.0) * PLAYER_SPEED * DT, PLAYER_RADIUS)
-		pl.fire_cd -= DT
-		if pl.fire_cd <= 0.0:
-			var j := _nearest_enemy(pl.pos, FIRE_RANGE)
-			if j >= 0:
-				_fire(pl.pos, (store.pos[j] - pl.pos).normalized())
-				pl.fire_cd = FIRE_INTERVAL
+		var spd := PLAYER_SPEED * pl.move_mult
+		pl.pos = _resolve_static(pl.pos + pl.input.limit_length(1.0) * spd * DT, PLAYER_RADIUS)
+		Skills.update(self, pl)
+		Progression.update_tribulation(self, pl)
+
+
+## Đếm ngược các tia thiên lôi; tia tới hạn đánh người chơi (tính bất tử) và quái trong vùng.
+## Gom tia tới hạn ra trước rồi mới gây sát thương: người chơi gục giữa chừng làm
+## fail_tribulation xoá các tia còn lại, không được xoá trong lúc đang duyệt mảng.
+func _update_strikes() -> void:
+	var due: Array[Vector4] = []  # (x, y, bán kính, sát thương)
+	var k := strike_count - 1
+	while k >= 0:
+		strike_timer[k] -= DT
+		if strike_timer[k] <= 0.0:
+			due.append(Vector4(strike_pos[k].x, strike_pos[k].y, strike_radius[k], strike_dmg[k]))
+			_remove_strike(k)
+		k -= 1
+	for st in due:
+		var p := Vector2(st.x, st.y)
+		for pl: PlayerState in players:
+			var rr := st.z + PLAYER_RADIUS
+			if pl.pos.distance_squared_to(p) < rr * rr:
+				_hurt_player(pl, st.w, false)
+		var n := query_enemies(p, st.z)
+		for q in n:
+			var j := scratch[q]
+			damage_enemy(j, st.w * STRIKE_ENEMY_MULT, (store.pos[j] - p).normalized())
+		events.append({&"t": &"strike", &"pos": p, &"radius": st.z})
+
+
+func _remove_strike(k: int) -> void:
+	strike_count -= 1
+	var last := strike_count
+	if k == last:
+		return
+	strike_pos[k] = strike_pos[last]
+	strike_radius[k] = strike_radius[last]
+	strike_dmg[k] = strike_dmg[last]
+	strike_timer[k] = strike_timer[last]
+	strike_warn[k] = strike_warn[last]
+	strike_owner[k] = strike_owner[last]
 
 
 func _update_enemies() -> void:
@@ -261,6 +449,7 @@ func _update_enemies() -> void:
 	var cd := s.cd
 	var stun := s.stun
 	var flash := s.flash
+	var orbit_cd := s.orbit_cd
 	var vel := s.vel
 	var type := s.type
 	var beh := db.behavior
@@ -279,6 +468,8 @@ func _update_enemies() -> void:
 		cd[i] -= DT
 		if flash[i] > 0.0:
 			flash[i] = maxf(flash[i] - DT, 0.0)
+		if orbit_cd[i] > 0.0:
+			orbit_cd[i] -= DT
 		if stun[i] > 0.0:
 			stun[i] -= DT
 			if state[i] == EnemyStore.S_WINDUP or state[i] == EnemyStore.S_DASH:
@@ -432,20 +623,9 @@ func _hurt_player(pl: PlayerState, dmg: float, ignore_iframes: bool) -> void:
 	events.append({&"t": &"player_hit", &"player": pl.id, &"dmg": dmg})
 	if pl.hp <= 0.0:
 		pl.deaths += 1
-		pl.hp = PLAYER_HP  # cảnh test: hồi sinh tại chỗ
-
-
-func _fire(from: Vector2, d: Vector2) -> void:
-	if proj_count >= MAX_PROJ:
-		return
-	var k := proj_count
-	proj_count += 1
-	proj_pos[k] = from
-	proj_prev[k] = from
-	proj_vel[k] = d * PROJ_SPEED
-	proj_life[k] = PROJ_LIFE
-	proj_pierce[k] = PROJ_PIERCE
-	proj_last_hit[k] = -1
+		if pl.trib_level > 0:
+			Progression.fail_tribulation(self, pl)
+		pl.hp = pl.max_hp  # bản demo: hồi sinh tại chỗ
 
 
 func _update_projectiles() -> void:
@@ -479,7 +659,7 @@ func _projectile_hits(k: int, a: Vector2, b: Vector2) -> bool:
 				var q := Geometry2D.get_closest_point_to_segment(s.pos[j], a, b)
 				if q.distance_squared_to(s.pos[j]) >= rr * rr:
 					continue
-				damage_enemy(j, PROJ_DMG, d)
+				damage_enemy(j, proj_dmg[k], d)
 				proj_last_hit[k] = s.uid[j]
 				proj_pierce[k] -= 1
 				if proj_pierce[k] < 0:
@@ -496,6 +676,7 @@ func _remove_projectile(k: int) -> void:
 	proj_prev[k] = proj_prev[last]
 	proj_vel[k] = proj_vel[last]
 	proj_life[k] = proj_life[last]
+	proj_dmg[k] = proj_dmg[last]
 	proj_pierce[k] = proj_pierce[last]
 	proj_last_hit[k] = proj_last_hit[last]
 
@@ -522,28 +703,102 @@ func _remove_dead_and_far() -> void:
 		i -= 1
 
 
-# --- Tiện ích ------------------------------------------------------------------
-
-func _nearest_enemy(p: Vector2, max_range: float) -> int:
-	var s := store
-	var start := grid.cell_start
-	var items := grid.items
-	var best := -1
-	var best_d2 := max_range * max_range
-	var box := grid.cell_box(p, max_range)
-	for cy in range(box.y, box.w + 1):
-		for cx in range(box.x, box.z + 1):
-			var c := cy * grid.cols + cx
-			for k in range(start[c], start[c + 1]):
-				var j := items[k]
-				if s.hp[j] <= 0.0:
+## Vật phẩm trong bán kính hút của người chơi bay về phía người đó, chạm thì được nhặt.
+func _update_drops() -> void:
+	var d := drops
+	var pos := d.pos
+	var owner := d.owner
+	var pulled := d.pulled
+	var speed := d.speed
+	var i := d.count - 1
+	while i >= 0:
+		var who := pulled[i]
+		if who < 0:
+			for pl: PlayerState in players:
+				if owner[i] >= 0 and owner[i] != pl.id:
 					continue
-				var d2 := p.distance_squared_to(s.pos[j])
-				if d2 < best_d2:
-					best_d2 = d2
-					best = j
-	return best
+				if pos[i].distance_squared_to(pl.pos) < pl.magnet * pl.magnet:
+					who = pl.id
+					pulled[i] = who
+					speed[i] = PULL_SPEED
+					break
+		if who >= 0:
+			var pl := players[who]
+			var to := pl.pos - pos[i]
+			var dist := to.length()
+			if dist < PICKUP_RADIUS:
+				_collect(pl, i)
+				d.remove(i)
+			else:
+				speed[i] = minf(speed[i] + PULL_ACCEL * DT, PULL_MAX_SPEED)
+				pos[i] += to * (minf(speed[i] * DT, dist) / dist)
+		i -= 1
 
+
+func _collect(pl: PlayerState, i: int) -> void:
+	var v := drops.value[i]
+	match drops.kind[i]:
+		DropStore.QI:
+			Progression.add_qi(self, pl, v)
+		DropStore.STONE:
+			pl.stones += int(v)
+		DropStore.IMMORTAL:
+			pl.immortal += int(v)
+		DropStore.VACUUM:
+			# Mọi viên linh khí chưa ai hút bay về người nhặt.
+			var pulled := drops.pulled
+			var speed := drops.speed
+			var kind := drops.kind
+			for k in drops.count:
+				if kind[k] == DropStore.QI and pulled[k] < 0:
+					pulled[k] = pl.id
+					speed[k] = PULL_SPEED
+	events.append({&"t": &"pickup", &"drop": drops.uid[i], &"player": pl.id, &"kind": drops.kind[i], &"value": v})
+
+
+## Rơi đồ khi quái chết: linh khí chung, linh thạch và tiên linh thạch rơi riêng cho từng người chơi.
+func _drop_loot(j: int) -> void:
+	var t := store.type[j]
+	var p := store.pos[j]
+	spawn_drop(DropStore.QI, p, db.qi[t], -1)
+	if rng.randf() < db.stone_chance[t]:
+		for pl: PlayerState in players:
+			spawn_drop(DropStore.STONE, p + Vector2(10, 0), db.stone_count[t], pl.id)
+	if rng.randf() < db.immortal_chance[t]:
+		for pl: PlayerState in players:
+			spawn_drop(DropStore.IMMORTAL, p - Vector2(10, 0), 1.0, pl.id)
+	if rng.randf() < db.vacuum_chance[t]:
+		spawn_drop(DropStore.VACUUM, p + Vector2(0, 10), 1.0, -1)
+
+
+## Khi kho vật phẩm đầy, linh khí mới được cộng dồn vào viên linh khí gần chỗ quái chết nhất
+## (vẫn nằm nơi người chơi vừa đánh) thay vì mất đi.
+func spawn_drop(kind: int, p: Vector2, value: float, owner_id: int) -> void:
+	if value <= 0.0:
+		return
+	var i := drops.spawn(kind, p, value, owner_id)
+	if i >= 0:
+		events.append({&"t": &"drop", &"drop": drops.uid[i], &"kind": kind, &"pos": p, &"value": value, &"owner": owner_id})
+		return
+	if kind != DropStore.QI:
+		return
+	var best := -1
+	var best_d2 := INF
+	var dpos := drops.pos
+	var dkind := drops.kind
+	for k in drops.count:
+		if dkind[k] != DropStore.QI:
+			continue
+		var d2 := p.distance_squared_to(dpos[k])
+		if d2 < best_d2:
+			best_d2 = d2
+			best = k
+	if best >= 0:
+		drops.value[best] += value
+		events.append({&"t": &"drop_merge", &"drop": drops.uid[best], &"value": drops.value[best]})
+
+
+# --- Tiện ích ------------------------------------------------------------------
 
 func _resolve_static(p: Vector2, r: float) -> Vector2:
 	var rk := flow.rock_at[flow.cell_index(p)]

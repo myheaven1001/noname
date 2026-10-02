@@ -29,7 +29,7 @@ func setup(w: World) -> void:
 	mm.transform_format = MultiMesh.TRANSFORM_2D
 	mm.use_colors = true
 	mm.use_custom_data = true
-	mm.mesh = _make_quad()
+	mm.mesh = make_quad()
 	mm.instance_count = World.MAX_ENEMIES
 	mm.visible_instance_count = 0
 	multimesh = mm
@@ -93,7 +93,7 @@ static func fill_buffer(w: World, alpha: float, buf: PackedFloat32Array) -> int:
 	return n
 
 
-static func _make_quad() -> ArrayMesh:
+static func make_quad() -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = PackedVector2Array([

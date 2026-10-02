@@ -27,6 +27,7 @@ var timer := PackedFloat32Array()  # đếm ngược của trạng thái hiện 
 var cd := PackedFloat32Array()  # hồi chiêu đòn đặc biệt
 var stun := PackedFloat32Array()  # choáng/đóng băng còn lại
 var flash := PackedFloat32Array()  # nháy trắng khi trúng đòn
+var orbit_cd := PackedFloat32Array()  # chờ trước khi Hộ thể kiếm chém lại con này
 var hit_mask := PackedInt32Array()  # bit người chơi đã trúng trong cú lao hiện tại
 var target := PackedInt32Array()  # chỉ số người chơi đang nhắm
 
@@ -48,6 +49,7 @@ func _init(cap: int) -> void:
 	cd.resize(cap)
 	stun.resize(cap)
 	flash.resize(cap)
+	orbit_cd.resize(cap)
 	hit_mask.resize(cap)
 	target.resize(cap)
 
@@ -74,6 +76,7 @@ func spawn(t: int, p: Vector2, health: float) -> int:
 	cd[i] = 0.0
 	stun[i] = 0.0
 	flash[i] = 0.0
+	orbit_cd[i] = 0.0
 	hit_mask[i] = 0
 	target[i] = -1
 	return i
@@ -100,5 +103,6 @@ func remove(i: int) -> void:
 	cd[i] = cd[last]
 	stun[i] = stun[last]
 	flash[i] = flash[last]
+	orbit_cd[i] = orbit_cd[last]
 	hit_mask[i] = hit_mask[last]
 	target[i] = target[last]

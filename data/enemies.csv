@@ -1,4 +1,4 @@
-id,behavior,spawn_weight,max_hp,speed,radius,mass,contact_dmg,color,dash_trigger,windup,dash_dist,dash_speed,recover,dash_cooldown,dash_dmg
-bat,chase,60,8,95,10,0.5,4,#8a5cd6,,,,,,,
-wolf,wolf,36,30,80,14,1.5,6,#9aab8f,260,0.5,300,750,0.6,3.0,12
-wolf_elite,wolf,4,240,85,21,6,10,#e0ad3e,300,0.6,380,800,0.5,2.5,25
+id,behavior,spawn_weight,max_hp,speed,radius,mass,contact_dmg,color,qi,stone_chance,stone_count,immortal_chance,vacuum_chance,dash_trigger,windup,dash_dist,dash_speed,recover,dash_cooldown,dash_dmg
+bat,chase,60,8,95,10,0.5,4,#8a5cd6,1,0.04,1,0,0,,,,,,,
+wolf,wolf,36,30,80,14,1.5,6,#9aab8f,3,0.10,1,0,0.004,260,0.5,300,750,0.6,3.0,12
+wolf_elite,wolf,4,240,85,21,6,10,#e0ad3e,15,1.0,3,0.08,0.3,300,0.6,380,800,0.5,2.5,25

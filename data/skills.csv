@@ -1,0 +1,25 @@
+id,kind,name,level,dmg,cooldown,count,area,pierce,speed,value,desc
+kiem_khi,active,Kiếm khí,1,12,0.26,1,0,1,900,0,Bắn kiếm khí vào quái gần nhất.
+kiem_khi,active,Kiếm khí,2,14,0.30,2,0,1,900,0,Bắn 2 luồng kiếm khí.
+kiem_khi,active,Kiếm khí,3,18,0.28,2,0,2,950,0,"Sát thương +30%, xuyên thêm 1 mục tiêu."
+kiem_khi,active,Kiếm khí,4,20,0.24,3,0,2,1000,0,"Bắn 3 luồng, hồi chiêu nhanh hơn."
+kiem_khi,active,Kiếm khí,5,26,0.20,4,0,3,1050,0,"Bắn 4 luồng, xuyên 3 mục tiêu."
+ho_the_kiem,active,Hộ thể kiếm,1,10,0.45,2,70,0,3.2,0,2 thanh kiếm xoay quanh người.
+ho_the_kiem,active,Hộ thể kiếm,2,12,0.45,3,75,0,3.2,0,Thêm 1 thanh kiếm.
+ho_the_kiem,active,Hộ thể kiếm,3,15,0.40,3,85,0,3.6,0,"Sát thương +25%, quỹ đạo rộng hơn."
+ho_the_kiem,active,Hộ thể kiếm,4,17,0.40,4,90,0,4.0,0,Thêm 1 thanh kiếm.
+ho_the_kiem,active,Hộ thể kiếm,5,22,0.35,5,100,0,4.4,0,"5 thanh kiếm, xoay nhanh hơn."
+chuong_tam_loi,active,Chưởng tâm lôi,1,22,1.6,1,60,0,0,0,Sét đánh 1 quái ngẫu nhiên gần bạn.
+chuong_tam_loi,active,Chưởng tâm lôi,2,26,1.5,2,60,0,0,0,Sét đánh 2 mục tiêu.
+chuong_tam_loi,active,Chưởng tâm lôi,3,32,1.4,2,75,0,0,0,"Sát thương +25%, vùng nổ rộng hơn."
+chuong_tam_loi,active,Chưởng tâm lôi,4,36,1.2,3,75,0,0,0,"3 mục tiêu, hồi chiêu nhanh hơn."
+chuong_tam_loi,active,Chưởng tâm lôi,5,46,1.0,4,90,0,0,0,"4 mục tiêu, vùng nổ rộng nhất."
+than_phap,passive,Thân pháp,1,,,,,,,0.10,Tốc độ di chuyển +10%.
+than_phap,passive,Thân pháp,2,,,,,,,0.20,Tốc độ di chuyển +20%.
+than_phap,passive,Thân pháp,3,,,,,,,0.30,Tốc độ di chuyển +30%.
+tu_linh,passive,Tụ linh trận,1,,,,,,,40,Bán kính hút vật phẩm +40.
+tu_linh,passive,Tụ linh trận,2,,,,,,,80,Bán kính hút vật phẩm +80.
+tu_linh,passive,Tụ linh trận,3,,,,,,,130,Bán kính hút vật phẩm +130.
+kim_cang,passive,Kim cang thể,1,,,,,,,25,Máu tối đa +25 và hồi đầy máu.
+kim_cang,passive,Kim cang thể,2,,,,,,,50,Máu tối đa +50 và hồi đầy máu.
+kim_cang,passive,Kim cang thể,3,,,,,,,80,Máu tối đa +80 và hồi đầy máu.

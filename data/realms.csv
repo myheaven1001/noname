@@ -1,0 +1,20 @@
+id,realm,tier,qi_to_next,tribulation,max_hp_bonus,dmg_bonus,move_bonus
+lk1,Luyện Khí,1,8,0,0,0,0
+lk2,Luyện Khí,2,10,0,0,0,0
+lk3,Luyện Khí,3,13,0,0,0,0
+lk4,Luyện Khí,4,16,0,0,0,0
+lk5,Luyện Khí,5,20,0,0,0,0
+lk6,Luyện Khí,6,25,0,0,0,0
+lk7,Luyện Khí,7,30,0,0,0,0
+lk8,Luyện Khí,8,36,0,0,0,0
+lk9,Luyện Khí,9,45,1,0,0,0
+tc1,Trúc Cơ,1,50,0,30,0.15,0.05
+tc2,Trúc Cơ,2,58,0,0,0,0
+tc3,Trúc Cơ,3,66,0,0,0,0
+tc4,Trúc Cơ,4,75,0,0,0,0
+tc5,Trúc Cơ,5,85,0,0,0,0
+tc6,Trúc Cơ,6,95,0,0,0,0
+tc7,Trúc Cơ,7,108,0,0,0,0
+tc8,Trúc Cơ,8,122,0,0,0,0
+tc9,Trúc Cơ,9,145,2,0,0,0
+kd1,Kết Đan,1,0,0,60,0.3,0.05
