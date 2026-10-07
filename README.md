@@ -165,6 +165,18 @@ tools/build_web.sh               Export bản web + chuẩn bị file để đă
    thêm hằng số hành vi trong `EnemyDB.BEHAVIORS` và một nhánh `match` trong `World._update_enemies`.
 3. Quái tinh anh chỉ là một dòng CSV khác (xem `wolf_elite`).
 
+## Art
+
+Chuẩn phong cách, bảng số khung theo hướng và prompt tạo ảnh cho Sói yêu nằm ở
+[`assets/enemies/wolf/reference/README.md`](assets/enemies/wolf/reference/README.md).
+Công cụ xử lý ảnh nằm trong `tools/art/` (cần Pillow: `pip install pillow`):
+
+| Script | Việc |
+|---|---|
+| `reference_scale.py` | Ảnh pixel art đã phóng to → khôi phục lưới pixel, xoá nền trắng, các cỡ 96/64/48 px, tấm so sánh trong cảnh chơi |
+| `direction_map.py` | Sơ đồ 8 hướng: hướng nào đã có, lật ngang, còn phải vẽ |
+| `wolf_run.py`, `wolf_directions.py` | Bản pixel dựng bằng code (hình tạm trước khi có mẫu) |
+
 ## Chưa có (bước tiếp theo)
 
 - Mạng: server headless gửi `events` + hiệu chỉnh vị trí qua WebSocket; client chạy cùng code di chuyển;

@@ -55,27 +55,98 @@ giữ đúng bên thì phải vẽ đủ 8 hướng (gần gấp đôi số khun
 
 Trong game: chọn hướng theo góc vận tốc chia 8 cung 45°; lúc gồng/lao dùng hướng đã khoá (`dir`).
 
-## Prompt cho công cụ tạo ảnh (luôn đính kèm `wolf_concept.webp` làm ảnh tham chiếu)
+## Prompt cho công cụ tạo ảnh
 
-Phần chung, ghép vào đầu mỗi prompt:
+Luôn đính kèm `wolf_concept.webp` làm ảnh tham chiếu nhân vật. Prompt viết bằng tiếng Anh vì đa số
+công cụ tạo ảnh hiểu tiếng Anh tốt nhất.
 
-> pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf,
-> large purple eyes, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a
-> navy cord with gold beads and a blue tassel, navy scarf with gold trim, fluffy tail turning into
-> blue spirit flame with small floating flames, lavender-blue outline, same palette, same proportions,
-> plain white background, full body, centered, no text
+### Quy trình để các ảnh đồng nhất
 
-Theo hướng:
+1. **Ảnh tĩnh từng hướng trước:** tạo 4 hướng còn thiếu (mục A), gửi lại để ghép vào sơ đồ 8 hướng và duyệt.
+2. **Animation sau:** mỗi hành động, mỗi hướng một lần tạo (mục B). Đính kèm **cả** `wolf_concept.webp`
+   **và** ảnh tĩnh đã duyệt của đúng hướng đó.
+3. Giữ cố định: cùng công cụ, cùng seed (nếu công cụ cho đặt), cùng tỉ lệ khung hình, nền trắng trơn.
+4. Không vẽ bóng dưới chân. Game tự vẽ bóng, để chung thì bóng bị lặp.
 
-- **Lên:** `back view facing away from the camera, back of the head and ears, tail flame in front`
-- **Chéo lên-phải:** `three-quarter back view, body turned up and to the right, head turned away, tail flame on the left`
-- **Phải:** `side view facing right, standing, profile`
-- **Xuống:** `front view facing the camera, symmetrical, tail flame visible behind the body`
-- **Chéo xuống-trái:** đã có (ảnh mẫu). Khi làm animation, dùng: `three-quarter front view, body turned down and to the left, same pose as the reference`
+### Phần chung (ghép vào đầu mọi prompt)
 
-Theo hành động (thêm sau hướng), ví dụ Chạy:
-`running animation, 6 frames in one horizontal row, evenly spaced, gallop cycle: gather, hind push,
-full extension, front paws land, front push, hind paws land`
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf,
+large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body,
+jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim,
+large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small
+floating flames, lavender-blue outline (no black outline), same palette, same proportions
+(head about 40% of body height), plain white background, no ground shadow, full body, centered,
+no text
+```
+
+### Prompt phủ định (nếu công cụ có ô "negative prompt")
+
+```
+realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background, ground shadow,
+cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border
+```
+
+### A. Ảnh tĩnh từng hướng (4 ảnh cần tạo)
+
+Mỗi prompt = phần chung + dòng dưới đây.
+
+| Tên file gửi lại | Hướng | Prompt riêng |
+|---|---|---|
+| `wolf_up_idle.png` | Lên | `back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, standing pose` |
+| `wolf_upright_idle.png` | Chéo lên-phải | `three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, standing pose` |
+| `wolf_right_idle.png` | Phải | `side view facing right, full profile, both eyes not visible (only the near eye), pendant hanging under the chin, tail flame behind on the left, standing pose` |
+| `wolf_down_idle.png` | Xuống | `front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, standing pose` |
+
+Hướng chéo xuống-trái đã có (ảnh mẫu). Ba hướng phía trái còn lại lật ngang, không cần tạo.
+
+### B. Animation từng hành động
+
+Mỗi prompt = phần chung + dòng hướng (cột "Prompt riêng" ở mục A, bỏ phần `standing pose`) + dòng
+hành động dưới đây. Mọi animation đều thêm:
+
+```
+sprite sheet, N frames in one horizontal row, evenly spaced, every frame the same size and the same
+character scale, feet on the same ground line in every frame
+```
+
+(thay `N` bằng số khung của hành động)
+
+| Tên file gửi lại | Hành động | N | Prompt hành động |
+|---|---|---|---|
+| `wolf_<hướng>_run.png` | Chạy (lặp) | 6 | `running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears back, tail flame streaming behind` |
+| `wolf_<hướng>_bite.png` | Cắn (lặp) | 4 | `biting attack loop: 1 head pulled back, 2 lunge forward with mouth open showing small fangs, 3 jaws snap shut, 4 recover to neutral; body stays in place` |
+| `wolf_<hướng>_windup.png` | Gồng (báo trước cú lao) | 3 | `charging up before a dash: 1 lowers the body, 2 crouches deeper with ears flat and runes glowing brighter, 3 fully crouched and ready to spring, eyes glowing intensely, tail flame flaring larger; this pose must read clearly as a warning` |
+| `wolf_<hướng>_dash.png` | Lao (lặp) | 3 | `high-speed dash: body stretched long and low, legs tucked, ears pinned back, tail flame trailing far behind as a streak; 3 frames with small variations of the stretch` |
+| `wolf_<hướng>_recover.png` | Nghỉ sau lao | 4 | `recovering after a dash: 1 skidding to a stop with front paws braced, 2 stumbling slightly, 3 panting with tongue out, 4 back to a neutral stance; tail flame smaller and dimmer` |
+| `wolf_<hướng>_hurt.png` | Trúng đòn | 1 | `hit reaction: flinching backward, eyes squeezed shut, ears flat, body recoiling away from the hit` |
+| `wolf_<hướng>_death.png` | Chết | 5 | `defeat animation: 1 staggers, 2 collapses onto its side, 3 lies down as the body starts to fade, 4 dissolves into blue spirit flame particles and purple rune sparks, 5 only a few fading sparks remain` |
+
+`<hướng>` là một trong: `up`, `upright`, `right`, `down`, `downleft`.
+
+Ví dụ một prompt hoàn chỉnh (Chạy, hướng phải) = phần chung + `side view facing right, full profile,
+both eyes not visible (only the near eye), pendant hanging under the chin, tail flame behind on the left`
++ dòng sprite sheet với N = 6 + prompt hành động của Chạy.
+
+### C. Sói tinh anh (Huyết Lang Vương)
+
+Dùng lại toàn bộ ảnh của sói thường. Chỉ cần một ảnh mẫu để chốt màu, game sẽ tự đổi màu theo bảng này:
+
+```
+same character and pose as the reference image, elite variant: crimson-violet spirit flame instead of
+blue, glowing red-violet runes, deep violet outline, a small golden crown-shaped flame above the head,
+fiercer narrowed eyes, everything else identical
+```
+
+### D. Bản "yêu hoá" cho quái (tuỳ chọn)
+
+Nếu muốn giữ mẫu dễ thương cho linh thú đồng hành và làm quái trông dữ hơn:
+
+```
+same character and pose as the reference image, corrupted demon version: red glowing eyes with slit
+pupils, bared fangs, ragged fur, darker grey-violet fur, runes glowing red, tail flame dark purple
+with black smoke, no pendant, torn scarf
+```
 
 ## Xử lý sau khi có ảnh
 
