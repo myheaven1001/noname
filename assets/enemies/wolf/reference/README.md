@@ -24,19 +24,36 @@ xoá nền và làm sẵn các cỡ 96 / 64 / 48 px cùng tấm so sánh `wolf_c
 
 ## Hướng và số khung
 
-4 hướng: phải, trái (= phải lật ngang), đi xuống (mặt về camera), đi lên (quay lưng).
-Chỉ cần vẽ 3 hướng. Mẫu hiện tại là góc 3/4 quay sang trái, gần với "trái / đi xuống".
+8 hướng (sơ đồ: `wolf_8_directions_map.png`, tạo bằng `tools/art/direction_map.py`). Ba hướng phía trái
+là bản lật ngang của ba hướng phía phải, nên chỉ vẽ 5 hướng. Ảnh mẫu chính là hướng **chéo xuống-trái**
+(3/4, mặt về camera, thân sang trái); lật nó ra **chéo xuống-phải**.
 
-| Hành động | Khung / hướng | 3 hướng vẽ |
+| Hướng | Cách có |
+|---|---|
+| Lên | Vẽ |
+| Chéo lên-phải | Vẽ |
+| Phải | Vẽ |
+| Chéo xuống-phải | Lật từ ảnh mẫu |
+| Xuống | Vẽ |
+| Chéo xuống-trái | **Ảnh mẫu** |
+| Trái | Lật từ phải |
+| Chéo lên-trái | Lật từ chéo lên-phải |
+
+Lật ngang làm ngọc bội và khăn đổi sang vai bên kia; chấp nhận được (cách làm phổ biến). Nếu muốn
+giữ đúng bên thì phải vẽ đủ 8 hướng (gần gấp đôi số khung).
+
+| Hành động | Khung / hướng | 5 hướng vẽ |
 |---|---|---|
-| Chạy | 6 | 18 |
-| Cắn | 4 | 12 |
-| Gồng (báo trước cú lao) | 3 | 9 |
-| Lao | 3 | 9 |
-| Nghỉ sau lao | 4 | 12 |
-| Trúng đòn | 1 | 3 |
-| Chết | 5 | 15 |
-| **Tổng** | **26** | **78** |
+| Chạy | 6 | 30 |
+| Cắn | 4 | 20 |
+| Gồng (báo trước cú lao) | 3 | 15 |
+| Lao | 3 | 15 |
+| Nghỉ sau lao | 4 | 20 |
+| Trúng đòn | 1 | 5 |
+| Chết | 5 | 25 |
+| **Tổng** | **26** | **130** |
+
+Trong game: chọn hướng theo góc vận tốc chia 8 cung 45°; lúc gồng/lao dùng hướng đã khoá (`dir`).
 
 ## Prompt cho công cụ tạo ảnh (luôn đính kèm `wolf_concept.webp` làm ảnh tham chiếu)
 
@@ -50,9 +67,11 @@ Phần chung, ghép vào đầu mỗi prompt:
 
 Theo hướng:
 
-- **Phải (nhìn ngang):** `side view facing right, standing`
-- **Đi xuống:** `front view facing the camera, symmetrical, tail flame visible behind the body`
-- **Đi lên:** `back view facing away from the camera, back of the head and ears, tail flame in front`
+- **Lên:** `back view facing away from the camera, back of the head and ears, tail flame in front`
+- **Chéo lên-phải:** `three-quarter back view, body turned up and to the right, head turned away, tail flame on the left`
+- **Phải:** `side view facing right, standing, profile`
+- **Xuống:** `front view facing the camera, symmetrical, tail flame visible behind the body`
+- **Chéo xuống-trái:** đã có (ảnh mẫu). Khi làm animation, dùng: `three-quarter front view, body turned down and to the left, same pose as the reference`
 
 Theo hành động (thêm sau hướng), ví dụ Chạy:
 `running animation, 6 frames in one horizontal row, evenly spaced, gallop cycle: gather, hind push,
