@@ -1,0 +1,388 @@
+<title>Chuẩn art Sói yêu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: một cột đọc ~68ch, ảnh và bảng được rộng hơn; màu lấy từ chính mẫu nhân vật
+     (giấy trắng ánh tím, mực xanh navy của khăn, tím phù văn, ngọc bích của ngọc bội, xanh lửa linh hồn). */
+  :root {
+    --paper: #f7f6fb;
+    --panel: #ecebf6;
+    --line: #d6d4ea;
+    --ink: #1d2147;
+    --muted: #5d6185;
+    --rune: #6d36c9;
+    --jade: #237f69;
+    --flame: #2f5fd6;
+    --code-bg: #1d2147;
+    --code-fg: #e9e8f5;
+    --font-display: "Cormorant Garamond", "Noto Serif", Georgia, serif;
+    --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12142a; --panel: #1b1e3a; --line: #2e3260; --ink: #e9e8f5; --muted: #a3a6c9;
+      --rune: #b896ff; --jade: #6fd3b0; --flame: #7aa2ff; --code-bg: #0b0d1f; --code-fg: #e9e8f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12142a; --panel: #1b1e3a; --line: #2e3260; --ink: #e9e8f5; --muted: #a3a6c9;
+    --rune: #b896ff; --jade: #6fd3b0; --flame: #7aa2ff; --code-bg: #0b0d1f; --code-fg: #e9e8f5;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 15.5px/1.65 var(--font-body);
+    padding-inline: 16px;
+    padding-block: 32px 64px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 56px; }
+  .prose { max-width: 68ch; }
+  h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(40px, 7vw, 64px); }
+  h2 { font-size: clamp(28px, 4.4vw, 38px); }
+  h3 { font-size: 17px; font-weight: 600; margin: 0; }
+  p { margin: 0; }
+  section { display: grid; gap: 18px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--rune); }
+  .muted { color: var(--muted); }
+  code { font-family: var(--font-mono); font-size: .88em; background: var(--panel); padding: 1px 5px; border-radius: 4px; }
+
+  /* Mở đầu: tên + nhân vật pixel phóng to */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: center; }
+  .hero .lead { font-size: 17px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
+  .hero img { width: min(300px, 40vw); image-rendering: pixelated; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .chip { font-size: 13px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+  .chip b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  ul.traits { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 68ch; }
+  ul.traits li::marker { color: var(--rune); }
+
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.total td { font-weight: 600; border-bottom: none; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 4px; }
+  .tag.draw { background: color-mix(in srgb, var(--flame) 16%, transparent); color: var(--flame); }
+  .tag.flip { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+  .tag.have { background: color-mix(in srgb, var(--jade) 18%, transparent); color: var(--jade); }
+
+  figure { margin: 0; display: grid; gap: 8px; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 6px; image-rendering: pixelated; background: #17201a; }
+  figcaption { font-size: 13px; color: var(--muted); }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+
+  ol.steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; max-width: 68ch; }
+  ol.steps li::marker { color: var(--rune); font-weight: 600; }
+
+  /* Khối prompt có nút chép */
+  .prompt { position: relative; background: var(--code-bg); color: var(--code-fg); border-radius: 8px; }
+  .prompt pre { margin: 0; padding: 16px 18px; padding-right: 92px; font: 400 13px/1.6 var(--font-mono); white-space: pre-wrap; word-break: break-word; }
+  .copy {
+    position: absolute; top: 10px; right: 10px;
+    font: 500 12px var(--font-body); color: var(--code-fg);
+    background: color-mix(in srgb, var(--code-fg) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--code-fg) 24%, transparent);
+    border-radius: 6px; padding: 4px 10px; cursor: pointer;
+  }
+  .copy:hover { background: color-mix(in srgb, var(--code-fg) 22%, transparent); }
+  .copy:focus-visible, select:focus-visible { outline: 2px solid var(--rune); outline-offset: 2px; }
+  .prompt-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+  .prompt-label code { background: none; padding: 0; color: var(--muted); }
+  .prompt-list { display: grid; gap: 22px; }
+
+  /* Bộ ghép prompt */
+  .builder { border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; background: var(--panel); }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
+  .controls label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
+  select { font: 500 14px var(--font-body); color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; min-width: 190px; }
+  .filename { font-size: 13px; color: var(--muted); }
+  .filename code { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero img { width: 200px; order: -1; }
+    .two { grid-template-columns: 1fr; }
+    select { min-width: 0; width: 100%; }
+    .controls label { flex: 1 1 100%; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Tiên Lộ · chuẩn art quái</div>
+      <h1>Sói yêu</h1>
+      <p class="lead">Mọi hướng, mọi hành động của Sói yêu phải khớp mẫu này. Trang gồm đặc điểm nhận dạng, cỡ dùng trong game, 8 hướng, số khung và bộ prompt để tạo phần còn thiếu.</p>
+      <div class="chips">
+        <span class="chip">Mẫu gốc <b>157×150 px</b></span>
+        <span class="chip">Quái thường <b>64 px</b></span>
+        <span class="chip">Tinh anh <b>96 px</b></span>
+        <span class="chip">8 hướng · vẽ <b>5</b></span>
+        <span class="chip">Tổng <b>130</b> khung</span>
+      </div>
+    </div>
+    <img src="wolf_concept_native.png" alt="Mẫu Sói yêu: linh lang chibi lông trắng ánh tím, phù văn tím, ngọc bội ngọc bích, đuôi lửa linh hồn xanh">
+  </header>
+
+  <section>
+    <div class="eyebrow">Giữ ở mọi hướng, mọi khung</div>
+    <h2>Đặc điểm nhận dạng</h2>
+    <ul class="traits">
+      <li>Dáng chibi: đầu to, khoảng 40% chiều cao; mắt to màu tím có điểm sáng.</li>
+      <li>Lông trắng ánh tím, bóng đổ xanh lavender, viền ngoài xanh tím đậm (không viền đen).</li>
+      <li>Phù văn xoắn tím phát sáng: một trên trán, hai trên má, hai trên thân, một trên chân trước.</li>
+      <li>Ngọc bội (đĩa ngọc bích có lỗ giữa) treo ở cổ, dây xanh navy hạt vàng, tua rua xanh.</li>
+      <li>Khăn xanh navy viền vàng vắt qua vai.</li>
+      <li>Đuôi xù chuyển thành ngọn lửa linh hồn xanh lam, có đốm lửa nhỏ bay quanh.</li>
+      <li>Hai tai to nhọn, trong tai tím.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="eyebrow">Kiểm tra trong cảnh chơi</div>
+    <h2>Cỡ trong game</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Loại</th><th>Cỡ sprite</th><th>Ghi chú</th></tr></thead>
+        <tbody>
+          <tr><td>Sói yêu thường</td><td>64 px</td><td>Còn đọc được mắt, ngọc bội, lửa. Bán kính va chạm cần tăng từ 14 lên khoảng 20.</td></tr>
+          <tr><td>Sói tinh anh</td><td>96 px</td><td>Đủ chi tiết phù văn; đổi màu lửa (vd. tím đỏ) để phân biệt.</td></tr>
+          <tr><td>48 px</td><td>Không khuyến nghị</td><td>Chỉ còn dáng và màu.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img src="wolf_concept_scale_check.png" alt="Mẫu ở cỡ 96, 64, 48 px, bên trái phóng ×3, bên phải trong cảnh chơi phóng ×2 cạnh dơi và người chơi" loading="lazy">
+      <figcaption>Ba cỡ 96 / 64 / 48 px: trái phóng ×3 để xem chi tiết, phải là cảnh chơi (người chơi, dơi) phóng ×2. Cuối ảnh là bảng màu rút từ mẫu.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="eyebrow">Vẽ 5 · lật 3</div>
+    <h2>Hướng và số khung</h2>
+    <p class="prose">Ba hướng phía trái là bản lật ngang của ba hướng phía phải. Ảnh mẫu chính là hướng <b>chéo xuống-trái</b> (3/4, mặt về camera, thân sang trái); lật nó ra <b>chéo xuống-phải</b>. Lật ngang làm ngọc bội và khăn đổi sang vai bên kia; đa số game chấp nhận. Muốn giữ đúng bên thì phải vẽ đủ 8 hướng, gần gấp đôi số khung.</p>
+    <div class="two">
+      <figure>
+        <img src="wolf_8_directions_map.png" alt="Sơ đồ 8 hướng: chéo xuống-trái đã có, chéo xuống-phải, trái, chéo lên-trái lật ngang; lên, chéo lên-phải, phải, xuống cần vẽ" loading="lazy">
+        <figcaption>Xanh lá: đã có. Xanh dương: lật ngang. Cam: cần vẽ.</figcaption>
+      </figure>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Hướng</th><th>Cách có</th></tr></thead>
+          <tbody>
+            <tr><td>Lên</td><td><span class="tag draw">Vẽ</span></td></tr>
+            <tr><td>Chéo lên-phải</td><td><span class="tag draw">Vẽ</span></td></tr>
+            <tr><td>Phải</td><td><span class="tag draw">Vẽ</span></td></tr>
+            <tr><td>Chéo xuống-phải</td><td><span class="tag flip">Lật từ ảnh mẫu</span></td></tr>
+            <tr><td>Xuống</td><td><span class="tag draw">Vẽ</span></td></tr>
+            <tr><td>Chéo xuống-trái</td><td><span class="tag have">Ảnh mẫu</span></td></tr>
+            <tr><td>Trái</td><td><span class="tag flip">Lật từ phải</span></td></tr>
+            <tr><td>Chéo lên-trái</td><td><span class="tag flip">Lật từ chéo lên-phải</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Hành động</th><th class="num">Khung / hướng</th><th class="num">5 hướng vẽ</th><th>Ghi chú</th></tr></thead>
+        <tbody>
+          <tr><td>Chạy</td><td class="num">6</td><td class="num">30</td><td>Lặp</td></tr>
+          <tr><td>Cắn</td><td class="num">4</td><td class="num">20</td><td>Lặp khi áp sát người chơi</td></tr>
+          <tr><td>Gồng (báo trước cú lao)</td><td class="num">3</td><td class="num">15</td><td>Chạy theo tiến độ gồng, không theo fps</td></tr>
+          <tr><td>Lao</td><td class="num">3</td><td class="num">15</td><td>Lặp</td></tr>
+          <tr><td>Nghỉ sau lao</td><td class="num">4</td><td class="num">20</td><td>Chạy theo tiến độ nghỉ</td></tr>
+          <tr><td>Trúng đòn</td><td class="num">1</td><td class="num">5</td><td></td></tr>
+          <tr><td>Chết</td><td class="num">5</td><td class="num">25</td><td></td></tr>
+          <tr class="total"><td>Tổng</td><td class="num">26</td><td class="num">130</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose muted">Trong game: chọn hướng theo góc vận tốc chia 8 cung 45°; lúc gồng và lao dùng hướng đã khoá.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Luôn đính kèm ảnh mẫu</div>
+    <h2>Prompt cho công cụ tạo ảnh</h2>
+    <p class="prose">Prompt viết bằng tiếng Anh vì đa số công cụ tạo ảnh hiểu tiếng Anh tốt nhất. Mỗi lần tạo đều đính kèm <code>wolf_concept.webp</code> làm ảnh tham chiếu nhân vật.</p>
+    <h3>Quy trình để các ảnh đồng nhất</h3>
+    <ol class="steps">
+      <li><b>Ảnh tĩnh từng hướng trước:</b> tạo 4 hướng còn thiếu (mục A), gửi lại để ghép vào sơ đồ 8 hướng và duyệt.</li>
+      <li><b>Animation sau:</b> mỗi hành động, mỗi hướng một lần tạo (mục B). Đính kèm cả <code>wolf_concept.webp</code> và ảnh tĩnh đã duyệt của đúng hướng đó.</li>
+      <li>Giữ cố định: cùng công cụ, cùng seed (nếu công cụ cho đặt), cùng tỉ lệ khung hình, nền trắng trơn.</li>
+      <li>Không vẽ bóng dưới chân. Game tự vẽ bóng, để chung thì bóng bị lặp.</li>
+    </ol>
+
+    <div class="builder" aria-labelledby="builder-title">
+      <h3 id="builder-title">Ghép prompt hoàn chỉnh</h3>
+      <div class="controls">
+        <label for="dir">Hướng
+          <select id="dir"></select>
+        </label>
+        <label for="act">Hành động
+          <select id="act"></select>
+        </label>
+      </div>
+      <div class="filename">Tên file gửi lại: <code id="fname"></code></div>
+      <div class="prompt"><pre id="built"></pre><button class="copy" type="button" data-copy="built">Chép</button></div>
+    </div>
+
+    <div class="prompt-list">
+      <div>
+        <div class="prompt-label"><h3>Phần chung</h3><span class="muted">ghép vào đầu mọi prompt</span></div>
+        <div class="prompt"><pre id="p-common"></pre><button class="copy" type="button" data-copy="p-common">Chép</button></div>
+      </div>
+      <div>
+        <div class="prompt-label"><h3>Prompt phủ định</h3><span class="muted">nếu công cụ có ô "negative prompt"</span></div>
+        <div class="prompt"><pre id="p-negative"></pre><button class="copy" type="button" data-copy="p-negative">Chép</button></div>
+      </div>
+    </div>
+
+    <h3>A. Ảnh tĩnh từng hướng (4 ảnh cần tạo)</h3>
+    <p class="prose muted">Mỗi prompt = phần chung + dòng riêng dưới đây. Hướng chéo xuống-trái đã có (ảnh mẫu); ba hướng phía trái lật ngang.</p>
+    <div class="prompt-list" id="list-dirs"></div>
+
+    <h3>B. Animation từng hành động</h3>
+    <p class="prose muted">Mỗi prompt = phần chung + dòng hướng (bỏ "standing pose") + dòng sprite sheet với số khung N + dòng hành động. Bộ ghép ở trên làm sẵn việc này.</p>
+    <div class="prompt-list">
+      <div>
+        <div class="prompt-label"><h3>Dòng sprite sheet</h3><span class="muted">thay N bằng số khung</span></div>
+        <div class="prompt"><pre id="p-sheet"></pre><button class="copy" type="button" data-copy="p-sheet">Chép</button></div>
+      </div>
+    </div>
+    <div class="prompt-list" id="list-acts"></div>
+
+    <h3>C. Sói tinh anh (Huyết Lang Vương)</h3>
+    <p class="prose muted">Dùng lại toàn bộ ảnh của sói thường. Chỉ cần một ảnh mẫu để chốt màu; game tự đổi màu theo bảng này.</p>
+    <div class="prompt"><pre id="p-elite"></pre><button class="copy" type="button" data-copy="p-elite">Chép</button></div>
+
+    <h3>D. Bản "yêu hoá" cho quái (tuỳ chọn)</h3>
+    <p class="prose muted">Nếu muốn giữ mẫu dễ thương cho linh thú đồng hành và làm quái trông dữ hơn.</p>
+    <div class="prompt"><pre id="p-demon"></pre><button class="copy" type="button" data-copy="p-demon">Chép</button></div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Khi có ảnh mới</div>
+    <h2>Xử lý sau khi có ảnh</h2>
+    <p class="prose">Chạy <code>tools/art/reference_scale.py</code> cho từng ảnh mới để khôi phục lưới pixel, xoá nền và thu về cỡ dùng trong game. Bước tiếp theo, chưa làm: khoá các khung về bảng màu của mẫu, xếp vào sprite sheet (mỗi hàng một hành động, mỗi hướng một sheet) và nối vào renderer của game.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  const COMMON = "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text";
+  const NEGATIVE = "realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background, ground shadow, cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border";
+  const SHEET = "sprite sheet, N frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame";
+  const ELITE = "same character and pose as the reference image, elite variant: crimson-violet spirit flame instead of blue, glowing red-violet runes, deep violet outline, a small golden crown-shaped flame above the head, fiercer narrowed eyes, everything else identical";
+  const DEMON = "same character and pose as the reference image, corrupted demon version: red glowing eyes with slit pupils, bared fangs, ragged fur, darker grey-violet fur, runes glowing red, tail flame dark purple with black smoke, no pendant, torn scarf";
+
+  const DIRS = [
+    { key: "up", name: "Lên", text: "back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera" },
+    { key: "upright", name: "Chéo lên-phải", text: "three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left" },
+    { key: "right", name: "Phải", text: "side view facing right, full profile, both eyes not visible (only the near eye), pendant hanging under the chin, tail flame behind on the left" },
+    { key: "down", name: "Xuống", text: "front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back" },
+    { key: "downleft", name: "Chéo xuống-trái (ảnh mẫu)", text: "three-quarter front view, body turned down and to the left, same pose as the reference", stillDone: true },
+  ];
+  const ACTS = [
+    { key: "idle", name: "Ảnh tĩnh (đứng)", n: 0 },
+    { key: "run", name: "Chạy (lặp)", n: 6, text: "running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears back, tail flame streaming behind" },
+    { key: "bite", name: "Cắn (lặp)", n: 4, text: "biting attack loop: 1 head pulled back, 2 lunge forward with mouth open showing small fangs, 3 jaws snap shut, 4 recover to neutral; body stays in place" },
+    { key: "windup", name: "Gồng (báo trước cú lao)", n: 3, text: "charging up before a dash: 1 lowers the body, 2 crouches deeper with ears flat and runes glowing brighter, 3 fully crouched and ready to spring, eyes glowing intensely, tail flame flaring larger; this pose must read clearly as a warning" },
+    { key: "dash", name: "Lao (lặp)", n: 3, text: "high-speed dash: body stretched long and low, legs tucked, ears pinned back, tail flame trailing far behind as a streak; 3 frames with small variations of the stretch" },
+    { key: "recover", name: "Nghỉ sau lao", n: 4, text: "recovering after a dash: 1 skidding to a stop with front paws braced, 2 stumbling slightly, 3 panting with tongue out, 4 back to a neutral stance; tail flame smaller and dimmer" },
+    { key: "hurt", name: "Trúng đòn", n: 1, text: "hit reaction: flinching backward, eyes squeezed shut, ears flat, body recoiling away from the hit" },
+    { key: "death", name: "Chết", n: 5, text: "defeat animation: 1 staggers, 2 collapses onto its side, 3 lies down as the body starts to fade, 4 dissolves into blue spirit flame particles and purple rune sparks, 5 only a few fading sparks remain" },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  $("p-common").textContent = COMMON;
+  $("p-negative").textContent = NEGATIVE;
+  $("p-sheet").textContent = SHEET;
+  $("p-elite").textContent = ELITE;
+  $("p-demon").textContent = DEMON;
+
+  function block(title, sub, text, id) {
+    const wrap = document.createElement("div");
+    const label = document.createElement("div");
+    label.className = "prompt-label";
+    const h = document.createElement("h3");
+    h.textContent = title;
+    const s = document.createElement("code");
+    s.textContent = sub;
+    label.append(h, s);
+    const box = document.createElement("div");
+    box.className = "prompt";
+    const pre = document.createElement("pre");
+    pre.id = id;
+    pre.textContent = text;
+    const btn = document.createElement("button");
+    btn.className = "copy";
+    btn.type = "button";
+    btn.dataset.copy = id;
+    btn.textContent = "Chép";
+    box.append(pre, btn);
+    wrap.append(label, box);
+    return wrap;
+  }
+  const listDirs = $("list-dirs");
+  DIRS.filter((d) => !d.stillDone).forEach((d) => {
+    listDirs.append(block(d.name, "wolf_" + d.key + "_idle.png", d.text + ", standing pose", "dir-" + d.key));
+  });
+  const listActs = $("list-acts");
+  ACTS.filter((a) => a.n > 0).forEach((a) => {
+    listActs.append(block(a.name + " · N = " + a.n, "wolf_<hướng>_" + a.key + ".png", a.text, "act-" + a.key));
+  });
+
+  // Bộ ghép: phần chung + hướng (+ sprite sheet với N + hành động).
+  const dirSel = $("dir");
+  const actSel = $("act");
+  DIRS.forEach((d) => dirSel.append(new Option(d.name, d.key)));
+  ACTS.forEach((a) => actSel.append(new Option(a.name, a.key)));
+  dirSel.value = "right";
+  actSel.value = "run";
+  function build() {
+    const d = DIRS.find((x) => x.key === dirSel.value);
+    const a = ACTS.find((x) => x.key === actSel.value);
+    let parts;
+    if (a.n === 0) {
+      parts = [COMMON, d.text + ", standing pose"];
+    } else {
+      parts = [COMMON, d.text, SHEET.replace("N frames", a.n + (a.n === 1 ? " frame" : " frames")), a.text];
+    }
+    $("built").textContent = parts.join(", ");
+    let name = "wolf_" + d.key + "_" + a.key + ".png";
+    if (d.stillDone && a.n === 0) name += " (đã có: ảnh mẫu)";
+    $("fname").textContent = name;
+  }
+  dirSel.addEventListener("change", build);
+  actSel.addEventListener("change", build);
+  build();
+
+  document.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".copy");
+    if (!btn) return;
+    const pre = $(btn.dataset.copy);
+    const done = () => { btn.textContent = "Đã chép"; setTimeout(() => { btn.textContent = "Chép"; }, 1500); };
+    const select = () => {
+      const r = document.createRange();
+      r.selectNodeContents(pre);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      btn.textContent = "Đã chọn, nhấn Ctrl+C";
+      setTimeout(() => { btn.textContent = "Chép"; }, 2500);
+    };
+    try {
+      navigator.clipboard.writeText(pre.textContent).then(done, select);
+    } catch (e) {
+      select();
+    }
+  });
+})();
+</script>
