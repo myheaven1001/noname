@@ -42,31 +42,134 @@ là bản lật ngang của ba hướng phía phải, nên chỉ vẽ 5 hướng
 Lật ngang làm ngọc bội và khăn đổi sang vai bên kia; chấp nhận được (cách làm phổ biến). Nếu muốn
 giữ đúng bên thì phải vẽ đủ 8 hướng (gần gấp đôi số khung).
 
+**Giai đoạn 1 (đang làm):** quái gần như lúc nào cũng đi hoặc chạy, nên chỉ làm hai animation này.
+Ảnh tĩnh dùng luôn ảnh concept.
+
+| Hành động | Khi nào dùng | Khung / hướng | 5 hướng vẽ |
+|---|---|---|---|
+| Ảnh tĩnh | Áp sát người chơi, đứng chờ | (ảnh concept) | 0 |
+| **Đi** | Đuổi người chơi (80 px/s), gần như toàn bộ thời gian | **6** | **30** |
+| **Chạy** | Cú lao sau khi gồng (750 px/s, ~0,4 giây = 1 vòng) | **6** | **30** |
+| **Tổng giai đoạn 1** | | **12** | **60** |
+
+Để sau (tạm dùng hiệu ứng shader hoặc khung của Đi/Chạy):
+
 | Hành động | Khung / hướng | 5 hướng vẽ |
 |---|---|---|
-| Chạy | 6 | 30 |
 | Cắn | 4 | 20 |
 | Gồng (báo trước cú lao) | 3 | 15 |
-| Lao | 3 | 15 |
+| Lao (tư thế duỗi riêng) | 3 | 15 |
 | Nghỉ sau lao | 4 | 20 |
 | Trúng đòn | 1 | 5 |
 | Chết | 5 | 25 |
-| **Tổng** | **26** | **130** |
 
 Trong game: chọn hướng theo góc vận tốc chia 8 cung 45°; lúc gồng/lao dùng hướng đã khoá (`dir`).
+Tốc độ animation Đi tính theo quãng đường (một vòng 6 khung ≈ một sải 32 px) để chân không "trượt
+băng"; mỗi con bắt đầu ở khung ngẫu nhiên để đám đông không bước đều.
 
 ## Prompt cho công cụ tạo ảnh
 
 Luôn đính kèm `wolf_concept.webp` làm ảnh tham chiếu nhân vật. Prompt viết bằng tiếng Anh vì đa số
 công cụ tạo ảnh hiểu tiếng Anh tốt nhất.
 
-### Quy trình để các ảnh đồng nhất
+### Bộ prompt giai đoạn 1: Đi + Chạy (chép một lần là dùng được)
 
-1. **Ảnh tĩnh từng hướng trước:** tạo 4 hướng còn thiếu (mục A), gửi lại để ghép vào sơ đồ 8 hướng và duyệt.
-2. **Animation sau:** mỗi hành động, mỗi hướng một lần tạo (mục B). Đính kèm **cả** `wolf_concept.webp`
-   **và** ảnh tĩnh đã duyệt của đúng hướng đó.
+Sinh từ `tools/art/wolf_prompts.py` (nguồn duy nhất; sửa prompt ở đó rồi chạy lại để cập nhật mục này).
+
+**10 prompt** (2 hành động × 5 hướng). Mỗi khối dưới đây đã ghép đủ, chép nguyên khối dán vào công cụ tạo ảnh, đính kèm `wolf_concept.webp`.
+
+| # | Tên file gửi lại | Hành động | Hướng | Khung |
+|---|---|---|---|---|
+| 1 | `wolf_up_walk.png` | Đi | Lên | 6 |
+| 2 | `wolf_upright_walk.png` | Đi | Chéo lên-phải | 6 |
+| 3 | `wolf_right_walk.png` | Đi | Phải | 6 |
+| 4 | `wolf_down_walk.png` | Đi | Xuống | 6 |
+| 5 | `wolf_downleft_walk.png` | Đi | Chéo xuống-trái | 6 |
+| 6 | `wolf_up_run.png` | Chạy | Lên | 6 |
+| 7 | `wolf_upright_run.png` | Chạy | Chéo lên-phải | 6 |
+| 8 | `wolf_right_run.png` | Chạy | Phải | 6 |
+| 9 | `wolf_down_run.png` | Chạy | Xuống | 6 |
+| 10 | `wolf_downleft_run.png` | Chạy | Chéo xuống-trái | 6 |
+
+#### 1. Đi · Lên → `wolf_up_walk.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently
+```
+
+#### 2. Đi · Chéo lên-phải → `wolf_upright_walk.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently
+```
+
+#### 3. Đi · Phải → `wolf_right_walk.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently
+```
+
+#### 4. Đi · Xuống → `wolf_down_walk.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently
+```
+
+#### 5. Đi · Chéo xuống-trái → `wolf_downleft_walk.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently
+```
+
+#### 6. Chạy · Lên → `wolf_up_run.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind
+```
+
+#### 7. Chạy · Chéo lên-phải → `wolf_upright_run.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind
+```
+
+#### 8. Chạy · Phải → `wolf_right_run.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind
+```
+
+#### 9. Chạy · Xuống → `wolf_down_run.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind
+```
+
+#### 10. Chạy · Chéo xuống-trái → `wolf_downleft_run.png`
+
+```
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind
+```
+
+#### Prompt phủ định (dùng chung, nếu công cụ có ô "negative prompt")
+
+```
+realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background, ground shadow, cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border, frames of different sizes, character changing size between frames
+```
+
+
+**Cách dùng:**
+
+1. Làm **Đi** trước (prompt 1–5), vì sói đi gần như suốt trận.
+2. Mỗi lần tạo đính kèm `wolf_concept.webp`. Từ hướng thứ hai trở đi, đính kèm thêm ảnh Đi của hướng
+   đã ưng ý để giữ đồng nhất.
 3. Giữ cố định: cùng công cụ, cùng seed (nếu công cụ cho đặt), cùng tỉ lệ khung hình, nền trắng trơn.
 4. Không vẽ bóng dưới chân. Game tự vẽ bóng, để chung thì bóng bị lặp.
+5. Gửi lại ảnh đúng tên file trong bảng.
+
+### Để sau: các mảnh prompt rời
+
+Dùng khi làm các hành động khác ở giai đoạn sau.
 
 ### Phần chung (ghép vào đầu mọi prompt)
 
@@ -87,7 +190,7 @@ realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background
 cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border
 ```
 
-### A. Ảnh tĩnh từng hướng (4 ảnh cần tạo)
+### A. Ảnh tĩnh từng hướng (để sau, hiện dùng ảnh concept)
 
 Mỗi prompt = phần chung + dòng dưới đây.
 
@@ -100,7 +203,7 @@ Mỗi prompt = phần chung + dòng dưới đây.
 
 Hướng chéo xuống-trái đã có (ảnh mẫu). Ba hướng phía trái còn lại lật ngang, không cần tạo.
 
-### B. Animation từng hành động
+### B. Animation các hành động khác
 
 Mỗi prompt = phần chung + dòng hướng (cột "Prompt riêng" ở mục A, bỏ phần `standing pose`) + dòng
 hành động dưới đây. Mọi animation đều thêm:

@@ -98,6 +98,8 @@
   .prompt-list { display: grid; gap: 22px; }
 
   /* Bộ ghép prompt */
+  .ready { border: 2px solid var(--rune); border-radius: 12px; padding: 20px; display: grid; gap: 18px; }
+  .num-badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; border-radius: 50%; background: var(--rune); color: var(--paper); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
   .builder { border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; background: var(--panel); }
   .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
   .controls label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
@@ -125,7 +127,7 @@
         <span class="chip">Quái thường <b>64 px</b></span>
         <span class="chip">Tinh anh <b>96 px</b></span>
         <span class="chip">8 hướng · vẽ <b>5</b></span>
-        <span class="chip">Tổng <b>130</b> khung</span>
+        <span class="chip">Giai đoạn 1 · Đi + Chạy <b>60</b> khung</span>
       </div>
     </div>
     <img src="wolf_concept_native.png" alt="Mẫu Sói yêu: linh lang chibi lông trắng ánh tím, phù văn tím, ngọc bội ngọc bích, đuôi lửa linh hồn xanh">
@@ -189,35 +191,57 @@
         </table>
       </div>
     </div>
+    <h3>Giai đoạn 1 (đang làm): Đi + Chạy</h3>
+    <p class="prose">Quái gần như lúc nào cũng đi hoặc chạy, nên chỉ làm hai animation này. Ảnh tĩnh dùng luôn ảnh concept.</p>
     <div class="table-scroll">
       <table>
-        <thead><tr><th>Hành động</th><th class="num">Khung / hướng</th><th class="num">5 hướng vẽ</th><th>Ghi chú</th></tr></thead>
+        <thead><tr><th>Hành động</th><th>Khi nào dùng</th><th class="num">Khung / hướng</th><th class="num">5 hướng vẽ</th></tr></thead>
         <tbody>
-          <tr><td>Chạy</td><td class="num">6</td><td class="num">30</td><td>Lặp</td></tr>
-          <tr><td>Cắn</td><td class="num">4</td><td class="num">20</td><td>Lặp khi áp sát người chơi</td></tr>
-          <tr><td>Gồng (báo trước cú lao)</td><td class="num">3</td><td class="num">15</td><td>Chạy theo tiến độ gồng, không theo fps</td></tr>
-          <tr><td>Lao</td><td class="num">3</td><td class="num">15</td><td>Lặp</td></tr>
-          <tr><td>Nghỉ sau lao</td><td class="num">4</td><td class="num">20</td><td>Chạy theo tiến độ nghỉ</td></tr>
-          <tr><td>Trúng đòn</td><td class="num">1</td><td class="num">5</td><td></td></tr>
-          <tr><td>Chết</td><td class="num">5</td><td class="num">25</td><td></td></tr>
-          <tr class="total"><td>Tổng</td><td class="num">26</td><td class="num">130</td><td></td></tr>
+          <tr><td>Ảnh tĩnh</td><td>Áp sát người chơi, đứng chờ</td><td class="num">concept</td><td class="num">0</td></tr>
+          <tr><td>Đi</td><td>Đuổi người chơi (80 px/s), gần như toàn bộ thời gian</td><td class="num">6</td><td class="num">30</td></tr>
+          <tr><td>Chạy</td><td>Cú lao sau khi gồng (750 px/s, ~0,4 giây = 1 vòng)</td><td class="num">6</td><td class="num">30</td></tr>
+          <tr class="total"><td>Tổng giai đoạn 1</td><td></td><td class="num">12</td><td class="num">60</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose muted">Trong game: chọn hướng theo góc vận tốc chia 8 cung 45°; lúc gồng và lao dùng hướng đã khoá.</p>
+    <h3>Để sau</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Hành động</th><th class="num">Khung / hướng</th><th class="num">5 hướng vẽ</th><th>Tạm thời</th></tr></thead>
+        <tbody>
+          <tr><td>Cắn</td><td class="num">4</td><td class="num">20</td><td>Khung của Đi</td></tr>
+          <tr><td>Gồng (báo trước cú lao)</td><td class="num">3</td><td class="num">15</td><td>Shader đỏ + vạch cảnh báo (đã có)</td></tr>
+          <tr><td>Lao (tư thế duỗi riêng)</td><td class="num">3</td><td class="num">15</td><td>Khung của Chạy</td></tr>
+          <tr><td>Nghỉ sau lao</td><td class="num">4</td><td class="num">20</td><td>Khung của Đi, chậm lại</td></tr>
+          <tr><td>Trúng đòn</td><td class="num">1</td><td class="num">5</td><td>Shader nháy trắng (đã có)</td></tr>
+          <tr><td>Chết</td><td class="num">5</td><td class="num">25</td><td>Shader tan biến</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose muted">Trong game: chọn hướng theo góc vận tốc chia 8 cung 45°; lúc gồng và lao dùng hướng đã khoá. Tốc độ animation Đi tính theo quãng đường (một vòng 6 khung ≈ một sải 32 px) để chân không trượt; mỗi con bắt đầu ở khung ngẫu nhiên để đám đông không bước đều.</p>
   </section>
 
   <section>
     <div class="eyebrow">Luôn đính kèm ảnh mẫu</div>
     <h2>Prompt cho công cụ tạo ảnh</h2>
     <p class="prose">Prompt viết bằng tiếng Anh vì đa số công cụ tạo ảnh hiểu tiếng Anh tốt nhất. Mỗi lần tạo đều đính kèm <code>wolf_concept.webp</code> làm ảnh tham chiếu nhân vật.</p>
-    <h3>Quy trình để các ảnh đồng nhất</h3>
-    <ol class="steps">
-      <li><b>Ảnh tĩnh từng hướng trước:</b> tạo 4 hướng còn thiếu (mục A), gửi lại để ghép vào sơ đồ 8 hướng và duyệt.</li>
-      <li><b>Animation sau:</b> mỗi hành động, mỗi hướng một lần tạo (mục B). Đính kèm cả <code>wolf_concept.webp</code> và ảnh tĩnh đã duyệt của đúng hướng đó.</li>
-      <li>Giữ cố định: cùng công cụ, cùng seed (nếu công cụ cho đặt), cùng tỉ lệ khung hình, nền trắng trơn.</li>
-      <li>Không vẽ bóng dưới chân. Game tự vẽ bóng, để chung thì bóng bị lặp.</li>
-    </ol>
+    <div class="ready" aria-labelledby="ready-title">
+      <div class="prompt-label"><h3 id="ready-title">10 prompt sẵn cho giai đoạn 1</h3><span class="muted">Đi + Chạy × 5 hướng · mỗi khối đã ghép đủ, chép một lần</span></div>
+      <ol class="steps">
+        <li>Làm <b>Đi</b> trước (prompt 1–5), vì sói đi gần như suốt trận.</li>
+        <li>Mỗi lần tạo đính kèm <code>wolf_concept.webp</code>. Từ hướng thứ hai trở đi, đính kèm thêm ảnh Đi của hướng đã ưng ý để giữ đồng nhất.</li>
+        <li>Giữ cố định: cùng công cụ, cùng seed (nếu có), cùng tỉ lệ khung hình, nền trắng trơn, không vẽ bóng dưới chân.</li>
+        <li>Gửi lại ảnh đúng tên file ghi trên mỗi khối.</li>
+      </ol>
+      <div class="prompt-list" id="list-ready"></div>
+      <div>
+        <div class="prompt-label"><h3>Prompt phủ định</h3><span class="muted">dùng chung cho cả 10, nếu công cụ có ô "negative prompt"</span></div>
+        <div class="prompt"><pre id="p-negative-ready"></pre><button class="copy" type="button" data-copy="p-negative-ready">Chép</button></div>
+      </div>
+    </div>
+
+    <h3>Để sau: các mảnh prompt rời</h3>
+    <p class="prose muted">Dùng khi làm các hành động khác ở giai đoạn sau, hoặc tự ghép bằng bộ ghép dưới đây.</p>
 
     <div class="builder" aria-labelledby="builder-title">
       <h3 id="builder-title">Ghép prompt hoàn chỉnh</h3>
@@ -244,7 +268,7 @@
       </div>
     </div>
 
-    <h3>A. Ảnh tĩnh từng hướng (4 ảnh cần tạo)</h3>
+    <h3>A. Ảnh tĩnh từng hướng (để sau, hiện dùng ảnh concept)</h3>
     <p class="prose muted">Mỗi prompt = phần chung + dòng riêng dưới đây. Hướng chéo xuống-trái đã có (ảnh mẫu); ba hướng phía trái lật ngang.</p>
     <div class="prompt-list" id="list-dirs"></div>
 
@@ -282,6 +306,8 @@
   const ELITE = "same character and pose as the reference image, elite variant: crimson-violet spirit flame instead of blue, glowing red-violet runes, deep violet outline, a small golden crown-shaped flame above the head, fiercer narrowed eyes, everything else identical";
   const DEMON = "same character and pose as the reference image, corrupted demon version: red glowing eyes with slit pupils, bared fangs, ragged fur, darker grey-violet fur, runes glowing red, tail flame dark purple with black smoke, no pendant, torn scarf";
 
+  const READY = [{"file": "wolf_up_walk.png", "direction": "Lên", "action": "Đi", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently"}, {"file": "wolf_upright_walk.png", "direction": "Chéo lên-phải", "action": "Đi", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently"}, {"file": "wolf_right_walk.png", "direction": "Phải", "action": "Đi", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently"}, {"file": "wolf_down_walk.png", "direction": "Xuống", "action": "Đi", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently"}, {"file": "wolf_downleft_walk.png", "direction": "Chéo xuống-trái", "action": "Đi", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently"}, {"file": "wolf_up_run.png", "direction": "Lên", "action": "Chạy", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind"}, {"file": "wolf_upright_run.png", "direction": "Chéo lên-phải", "action": "Chạy", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind"}, {"file": "wolf_right_run.png", "direction": "Phải", "action": "Chạy", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind"}, {"file": "wolf_down_run.png", "direction": "Xuống", "action": "Chạy", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind"}, {"file": "wolf_downleft_run.png", "direction": "Chéo xuống-trái", "action": "Chạy", "frames": 6, "prompt": "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 6 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, seamless loop where the last frame flows back into the first, running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind"}];
+  const READY_NEGATIVE = "realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background, ground shadow, cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border, frames of different sizes, character changing size between frames";
   const DIRS = [
     { key: "up", name: "Lên", text: "back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera" },
     { key: "upright", name: "Chéo lên-phải", text: "three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left" },
@@ -291,6 +317,7 @@
   ];
   const ACTS = [
     { key: "idle", name: "Ảnh tĩnh (đứng)", n: 0 },
+    { key: "walk", name: "Đi (lặp)", n: 6, text: "walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small bouncy chibi steps, head steady, ears and tail flame swaying gently" },
     { key: "run", name: "Chạy (lặp)", n: 6, text: "running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push while hind legs swing forward, 6 hind paws land; ears back, tail flame streaming behind" },
     { key: "bite", name: "Cắn (lặp)", n: 4, text: "biting attack loop: 1 head pulled back, 2 lunge forward with mouth open showing small fangs, 3 jaws snap shut, 4 recover to neutral; body stays in place" },
     { key: "windup", name: "Gồng (báo trước cú lao)", n: 3, text: "charging up before a dash: 1 lowers the body, 2 crouches deeper with ears flat and runes glowing brighter, 3 fully crouched and ready to spring, eyes glowing intensely, tail flame flaring larger; this pose must read clearly as a warning" },
@@ -330,6 +357,18 @@
     wrap.append(label, box);
     return wrap;
   }
+  $("p-negative-ready").textContent = READY_NEGATIVE;
+  const listReady = $("list-ready");
+  READY.forEach((p, i) => {
+    const b = block((i + 1) + ". " + p.action + " · " + p.direction, p.file, p.prompt, "ready-" + i);
+    const badge = document.createElement("span");
+    badge.className = "num-badge";
+    badge.textContent = String(i + 1);
+    const h = b.querySelector("h3");
+    h.textContent = p.action + " · " + p.direction;
+    h.parentNode.insertBefore(badge, h);
+    listReady.append(b);
+  });
   const listDirs = $("list-dirs");
   DIRS.filter((d) => !d.stillDone).forEach((d) => {
     listDirs.append(block(d.name, "wolf_" + d.key + "_idle.png", d.text + ", standing pose", "dir-" + d.key));
@@ -345,7 +384,7 @@
   DIRS.forEach((d) => dirSel.append(new Option(d.name, d.key)));
   ACTS.forEach((a) => actSel.append(new Option(a.name, a.key)));
   dirSel.value = "right";
-  actSel.value = "run";
+  actSel.value = "walk";
   function build() {
     const d = DIRS.find((x) => x.key === dirSel.value);
     const a = ACTS.find((x) => x.key === actSel.value);
