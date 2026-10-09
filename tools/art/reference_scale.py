@@ -45,12 +45,18 @@ def remove_background(img, threshold=232):
     return img.crop(img.getbbox())
 
 
-def shrink(sprite, height, colors=40):
-    """Thu nhỏ giữ độ nét pixel: lọc LANCZOS, cắt alpha cứng, gom màu về bảng `colors` màu."""
+def shrink(sprite, height, colors=None):
+    """Thu nhỏ giữ độ nét pixel: lọc LANCZOS, cắt alpha cứng (viền sắc, không bán trong suốt).
+
+    `colors` = số màu để gom bảng màu; mặc định không gom: ở cỡ 64 px, gom màu (kể cả 64 màu) làm
+    mất các chi tiết ít điểm ảnh như ngọc bội ngọc bích và hạt vàng.
+    """
     w = round(sprite.width * height / sprite.height)
     small = sprite.resize((w, height), Image.LANCZOS)
     alpha = small.getchannel("A").point(lambda a: 255 if a >= 110 else 0)
-    rgb = small.convert("RGB").quantize(colors, method=Image.Quantize.MEDIANCUT).convert("RGB")
+    rgb = small.convert("RGB")
+    if colors:
+        rgb = rgb.quantize(colors, method=Image.Quantize.MEDIANCUT).convert("RGB")
     out = rgb.convert("RGBA")
     out.putalpha(alpha)
     return out
