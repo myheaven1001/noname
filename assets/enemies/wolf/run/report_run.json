@@ -1,0 +1,15 @@
+{
+ "scale_to_cell": 0.531,
+ "directions": {
+  "downleft": {
+   "frames": 6,
+   "union_px": [
+    354,
+    413
+   ],
+   "height_spread_pct": 8.2,
+   "width_spread_pct": 10.9,
+   "ground_spread_px_in_cell": 22.8
+  }
+ }
+}

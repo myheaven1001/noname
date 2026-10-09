@@ -20,10 +20,38 @@ from reference_scale import remove_background, shrink
 GROUND = (23, 32, 26, 255)
 
 
-def split_cells(sheet, n):
-    """Chia đều n ô; trả về danh sách ảnh ô (nền trong) cùng khung bao hợp (toạ độ trong ô)."""
+def _cuts(sheet, n, search=0.15):
+    """Vị trí cắt giữa các khung: cột có ít điểm ảnh nhất trong ±search ô quanh ranh giới đều.
+
+    Khi các khung chạm nhau (lửa đuôi, đốm lửa vắt sang ô bên), cắt ở cột thưa nhất làm ít mảnh
+    của khung này lọt sang khung kia nhất.
+    """
     w = sheet.width / n
-    cells = [sheet.crop((round(i * w), 0, round((i + 1) * w), sheet.height)) for i in range(n)]
+    alpha = sheet.getchannel("A").load()
+    counts = [sum(1 for y in range(0, sheet.height, 2) if alpha[x, y]) for x in range(sheet.width)]
+    cuts = [0]
+    for i in range(1, n):
+        lo, hi = round((i - search) * w), round((i + search) * w)
+        cuts.append(min(range(lo, hi), key=lambda x: (counts[x], abs(x - i * w))))
+    cuts.append(sheet.width)
+    return cuts
+
+
+def split_cells(sheet, n, margin=0.2):
+    """Tách n khung; mỗi khung giữ toạ độ theo ô đều danh nghĩa (để các khung thẳng hàng) và được
+    nới thêm `margin` ô mỗi bên cho phần nhô ra. Trả về ảnh khung, khung bao từng khung, khung bao hợp."""
+    w = sheet.width / n
+    cuts = _cuts(sheet, n)
+    m = round(margin * w)
+    cells = []
+    for i in range(n):
+        part = Image.new("RGBA", sheet.size, (0, 0, 0, 0))
+        part.paste(sheet.crop((cuts[i], 0, cuts[i + 1], sheet.height)), (cuts[i], 0))
+        left = round(i * w) - m
+        canvas = Image.new("RGBA", (round(w) + 2 * m, sheet.height), (0, 0, 0, 0))
+        canvas.paste(part.crop((max(0, left), 0, min(sheet.width, left + canvas.width), sheet.height)),
+                     (max(0, -left), 0))
+        cells.append(canvas)
     boxes = [c.getbbox() for c in cells]
     if any(b is None for b in boxes):
         raise ValueError("có ô trống: dải không có đủ %d khung" % n)
@@ -49,6 +77,8 @@ def main():
     ap.add_argument("--game", type=int, default=64)
     ap.add_argument("--pad", type=int, default=8)
     ap.add_argument("--action", default="walk")
+    ap.add_argument("--scale", type=float, default=0.0,
+                    help="tỉ lệ thu nhỏ cố định (0 = tự tính theo khung bao lớn nhất); dùng chung giữa các hành động")
     a = ap.parse_args()
     out = Path(a.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -63,7 +93,10 @@ def main():
 
     # Một tỉ lệ chung cho mọi hướng: khung bao lớn nhất vừa khít ô (trừ lề).
     biggest = max(max(u[2] - u[0], u[3] - u[1]) for _, _, u in parsed.values())
-    scale = (a.cell - 2 * a.pad) / biggest
+    scale = a.scale or (a.cell - 2 * a.pad) / biggest
+    if biggest * scale > a.cell - 2 * a.pad + 0.5:
+        print("CẢNH BÁO: với tỉ lệ %.4f, khung bao lớn nhất (%d px) vượt ô %d px, phần thừa bị cắt"
+              % (scale, biggest, a.cell))
     k = a.cell // a.game
     report = {"scale_to_cell": round(scale, 4), "directions": {}}
 
