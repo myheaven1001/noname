@@ -1,0 +1,35 @@
+{
+ "scale_to_cell": 0.566,
+ "directions": {
+  "up": {
+   "frames": 6,
+   "union_px": [
+    325,
+    424
+   ],
+   "height_spread_pct": 2.1,
+   "width_spread_pct": 3.2,
+   "ground_spread_px_in_cell": 2.3
+  },
+  "upright": {
+   "frames": 6,
+   "union_px": [
+    316,
+    374
+   ],
+   "height_spread_pct": 1.3,
+   "width_spread_pct": 7.1,
+   "ground_spread_px_in_cell": 2.3
+  },
+  "right": {
+   "frames": 6,
+   "union_px": [
+    322,
+    297
+   ],
+   "height_spread_pct": 2.4,
+   "width_spread_pct": 3.4,
+   "ground_spread_px_in_cell": 0.0
+  }
+ }
+}

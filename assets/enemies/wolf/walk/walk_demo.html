@@ -1,0 +1,329 @@
+<title>Sói yêu bước đi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  /* Layout: một giao diện tối duy nhất theo màu đất của cảnh chơi, để sprite được xem đúng nền nó sẽ nằm.
+     La bàn 8 hướng trước, cảnh chơi thật sau, kiểm tra tự động cuối. */
+  :root {
+    --ground: #17201a;
+    --panel: #1f2a23;
+    --line: #34443a;
+    --paper: #e9ece4;
+    --muted: #9aa89d;
+    --rune: #b896ff;
+    --jade: #6fd3b0;
+    --amber: #f0b45a;
+    --font-display: "Cormorant Garamond", "Noto Serif", Georgia, serif;
+    --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    color-scheme: dark;
+  }
+  body { background: var(--ground); color: var(--paper); font: 400 15px/1.6 var(--font-body); padding-inline: 16px; padding-block: 28px 56px; }
+  .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 44px; }
+  h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; line-height: 1.05; text-wrap: balance; }
+  h1 { font-size: clamp(38px, 6.5vw, 58px); }
+  h2 { font-size: clamp(26px, 4vw, 34px); }
+  p { margin: 0; }
+  section { display: grid; gap: 16px; }
+  .lead { color: var(--muted); max-width: 66ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 13px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .chip.ok { border-color: color-mix(in srgb, var(--jade) 50%, transparent); color: var(--jade); }
+  .chip.wait { border-color: color-mix(in srgb, var(--amber) 50%, transparent); color: var(--amber); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 14px; color: var(--muted); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { font: 500 13px var(--font-body); color: var(--muted); background: transparent; border: 0; padding: 6px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--paper); }
+  .btn { font: 500 13px var(--font-body); color: var(--paper); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--rune); outline-offset: 2px; }
+  input[type="range"] { accent-color: var(--jade); width: 140px; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--paper); }
+
+  .compass { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 620px; }
+  .dir { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 6px; justify-items: center; }
+  .dir.missing { border-style: dashed; }
+  .dir canvas { width: 100%; max-width: 176px; aspect-ratio: 1; image-rendering: pixelated; }
+  .dir .name { font-size: 13px; font-weight: 600; }
+  .dir .how { font-size: 12px; color: var(--muted); text-align: center; }
+  .dir .how.wait { color: var(--amber); }
+  .dir.center { place-content: center; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .scene-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--ground); }
+  #scene { display: block; width: 100%; aspect-ratio: 16 / 9; image-rendering: pixelated; }
+  .note { font-size: 13px; color: var(--muted); max-width: 72ch; }
+
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pass { color: var(--jade); font-weight: 600; }
+  @media (prefers-reduced-motion: reduce) { .note.motion { display: block; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:14px">
+    <h1>Sói yêu bước đi</h1>
+    <p class="lead">Ba dải animation Đi bạn tạo, đã xoá nền, căn khung và thu về đúng cỡ trong game. Mỗi hướng 6 khung. Hướng phía trái là bản lật ngang; hướng chưa có Đi tạm dùng ảnh concept đứng yên.</p>
+    <div class="chips">
+      <span class="chip ok">Có Đi: lên · chéo lên-phải · phải</span>
+      <span class="chip ok">Lật ngang: chéo lên-trái · trái</span>
+      <span class="chip wait">Còn thiếu: xuống · chéo xuống-trái (→ lật ra chéo xuống-phải)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Từng hướng</h2>
+    <div class="controls">
+      <span class="seg" role="group" aria-label="Kiểu xem">
+        <button type="button" id="view-detail" aria-pressed="true">Chi tiết 256 px</button>
+        <button type="button" id="view-game" aria-pressed="false">Trong game 64 px ×2</button>
+      </span>
+      <label for="fps">Tốc độ <input type="range" id="fps" min="4" max="16" step="1" value="10"> <span class="mono" id="fps-val">10</span> khung/giây</label>
+      <button class="btn" type="button" id="play">Tạm dừng</button>
+      <button class="btn" type="button" id="step">Khung tiếp</button>
+      <span>Khung <span class="mono" id="frame-no">1</span> / 6</span>
+    </div>
+    <div class="compass" id="compass"></div>
+  </section>
+
+  <section>
+    <h2>Trong cảnh chơi</h2>
+    <div class="controls">
+      <span class="seg" role="group" aria-label="Thu phóng cảnh">
+        <button type="button" id="zoom1" aria-pressed="true">Tỉ lệ thật 1:1</button>
+        <button type="button" id="zoom2" aria-pressed="false">Phóng ×2</button>
+      </span>
+      <label for="count">Số sói <input type="range" id="count" min="5" max="120" step="5" value="40"> <span class="mono" id="count-val">40</span></label>
+    </div>
+    <div class="scene-wrap"><canvas id="scene" width="960" height="540" aria-label="Cảnh chơi: đàn sói yêu đuổi theo người chơi"></canvas></div>
+    <p class="note">Mỗi con chọn 1 trong 8 hướng theo hướng di chuyển, tốc độ 80 px/giây như trong game. Khung hình chạy theo quãng đường (một vòng 6 khung ≈ 32 px) nên chân không trượt, và mỗi con bắt đầu ở khung ngẫu nhiên để đám đông không bước đều. Con đi xuống (về phía camera) đang dùng ảnh concept đứng yên, chỉ nhún nhẹ, cho tới khi có dải Đi của hướng đó.</p>
+  </section>
+
+  <section>
+    <h2>Kiểm tra tự động</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Hướng</th><th class="num">Khung</th><th class="num">Lệch chiều cao</th><th class="num">Lệch chiều rộng</th><th class="num">Lệch mặt đất (ô 256)</th><th>Kết quả</th></tr></thead>
+        <tbody>
+          <tr><td>Lên</td><td class="num">6</td><td class="num">2,1%</td><td class="num">3,2%</td><td class="num">2,3 px</td><td class="pass">Đạt</td></tr>
+          <tr><td>Chéo lên-phải</td><td class="num">6</td><td class="num">1,3%</td><td class="num">7,1%</td><td class="num">2,3 px</td><td class="pass">Đạt</td></tr>
+          <tr><td>Phải</td><td class="num">6</td><td class="num">2,4%</td><td class="num">3,4%</td><td class="num">0 px</td><td class="pass">Đạt</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Ngưỡng đạt: đủ 6 khung, chiều cao lệch dưới 5%, mặt đất lệch dưới 4 px. Chiều rộng lệch nhiều hơn là bình thường vì đốm lửa bay quanh đuôi thay đổi theo khung.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  const FRAMES = 6;
+  const STRIDE = 32;  // px đi được cho một vòng 6 khung (ở cỡ 64 px)
+  const SPEED = 80;   // px/giây, như Sói yêu trong game
+  const SECTORS = ["right", "downright", "down", "downleft", "left", "upleft", "up", "upright"];
+  const NAMES = {
+    up: "Lên", upright: "Chéo lên-phải", right: "Phải", downright: "Chéo xuống-phải",
+    down: "Xuống", downleft: "Chéo xuống-trái", left: "Trái", upleft: "Chéo lên-trái",
+  };
+  // Nguồn của từng hướng: dải Đi (có thể lật) hoặc ảnh concept đứng yên.
+  const SOURCE = {
+    up: { sheet: "up", flip: false, how: "Dải Đi" },
+    upright: { sheet: "upright", flip: false, how: "Dải Đi" },
+    right: { sheet: "right", flip: false, how: "Dải Đi" },
+    upleft: { sheet: "upright", flip: true, how: "Lật từ chéo lên-phải" },
+    left: { sheet: "right", flip: true, how: "Lật từ phải" },
+    downleft: { still: true, flip: false, how: "Chưa có Đi · prompt 5" },
+    downright: { still: true, flip: true, how: "Chưa có Đi · lật từ chéo xuống-trái" },
+    down: { still: true, flip: false, how: "Chưa có Đi · prompt 4" },
+  };
+  const LAYOUT = ["upleft", "up", "upright", "left", null, "right", "downleft", "down", "downright"];
+
+  function load(src) {
+    return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+  }
+  const files = {
+    up: "wolf_up_walk.png", upright: "wolf_upright_walk.png", right: "wolf_right_walk.png",
+    up64: "wolf_up_walk_64.png", upright64: "wolf_upright_walk_64.png", right64: "wolf_right_walk_64.png",
+    still: "wolf_still.png", still64: "wolf_still_64.png",
+  };
+  const img = {};
+
+  let view = "detail";   // detail | game
+  let fps = 10;
+  let playing = true;
+  let frame = 0;
+  let acc = 0;
+  let zoom = 1;
+
+  // --- La bàn 8 hướng ---
+  const compass = document.getElementById("compass");
+  const dirCanvases = {};
+  LAYOUT.forEach((d) => {
+    const box = document.createElement("div");
+    if (!d) {
+      box.className = "dir center";
+      box.textContent = "8 hướng · 5 vẽ, 3 lật";
+      compass.append(box);
+      return;
+    }
+    const src = SOURCE[d];
+    box.className = "dir" + (src.still ? " missing" : "");
+    const c = document.createElement("canvas");
+    c.width = 128; c.height = 128;
+    c.setAttribute("aria-label", NAMES[d]);
+    const name = document.createElement("div");
+    name.className = "name"; name.textContent = NAMES[d];
+    const how = document.createElement("div");
+    how.className = "how" + (src.still ? " wait" : ""); how.textContent = src.how;
+    box.append(c, name, how);
+    compass.append(box);
+    dirCanvases[d] = c;
+  });
+
+  function drawSprite(ctx, d, f, x, y, size, game, bob) {
+    const src = SOURCE[d];
+    let image, cell, sx;
+    if (src.still) {
+      image = game ? img.still64 : img.still; cell = game ? 64 : 256; sx = 0;
+    } else {
+      image = game ? img[src.sheet + "64"] : img[src.sheet]; cell = game ? 64 : 256; sx = (f % FRAMES) * cell;
+    }
+    ctx.save();
+    ctx.translate(x, y + (bob || 0));
+    if (src.flip) ctx.scale(-1, 1);
+    ctx.drawImage(image, sx, 0, cell, cell, -size / 2, -size, size, size);
+    ctx.restore();
+  }
+
+  function drawCompass() {
+    for (const d in dirCanvases) {
+      const c = dirCanvases[d];
+      const ctx = c.getContext("2d");
+      ctx.imageSmoothingEnabled = view === "detail";
+      ctx.fillStyle = "#17201a";
+      ctx.fillRect(0, 0, c.width, c.height);
+      const bob = SOURCE[d].still ? Math.round(Math.sin(frame / FRAMES * Math.PI * 2) * 1.5) : 0;
+      drawSprite(ctx, d, frame, 64, 124, 128, view === "game", bob);
+    }
+    document.getElementById("frame-no").textContent = String(frame + 1);
+  }
+
+  // --- Cảnh chơi ---
+  const scene = document.getElementById("scene");
+  const sctx = scene.getContext("2d");
+  const W = scene.width, H = scene.height;
+  let wolves = [];
+  let player = { x: W / 2, y: H / 2 };
+  let t = 0;
+
+  function spawn(n) {
+    wolves = [];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 220 + Math.random() * 260;
+      wolves.push({ x: W / 2 + Math.cos(a) * r, y: H / 2 + Math.sin(a) * r * 0.6, vx: 0, vy: 0,
+        phase: Math.random() * FRAMES, dir: "down" });
+    }
+  }
+
+  function sector(vx, vy) {
+    const k = Math.round(Math.atan2(vy, vx) / (Math.PI / 4));
+    return SECTORS[((k % 8) + 8) % 8];
+  }
+
+  function stepScene(dt) {
+    t += dt;
+    // Người chơi đi theo hình số 8 quanh giữa khung (chậm hơn sói một chút khi xét theo đường đi).
+    player.x = W / 2 + Math.sin(t * 0.35) * W * 0.3;
+    player.y = H / 2 + Math.sin(t * 0.7) * H * 0.22;
+    for (const w of wolves) {
+      let dx = player.x - w.x, dy = player.y - w.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      let tx = 0, ty = 0;
+      if (dist > 34) { tx = dx / dist * SPEED; ty = dy / dist * SPEED; }
+      // Tách nhau đơn giản để đàn không chồng lên một điểm.
+      for (const o of wolves) {
+        if (o === w) continue;
+        const ox = w.x - o.x, oy = w.y - o.y;
+        const d2 = ox * ox + oy * oy;
+        if (d2 > 0 && d2 < 30 * 30) { const d = Math.sqrt(d2); tx += ox / d * (30 - d) * 4; ty += oy / d * (30 - d) * 4; }
+      }
+      w.vx += (tx - w.vx) * Math.min(1, dt * 6);
+      w.vy += (ty - w.vy) * Math.min(1, dt * 6);
+      const sp = Math.hypot(w.vx, w.vy);
+      w.x += w.vx * dt; w.y += w.vy * dt;
+      if (sp > 12) w.dir = sector(w.vx, w.vy);
+      w.phase += sp * dt / (STRIDE / FRAMES);  // khung chạy theo quãng đường, đứng yên thì không bước
+      w.moving = sp > 12;
+    }
+  }
+
+  function drawScene() {
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.fillStyle = "#17201a";
+    sctx.fillRect(0, 0, W, H);
+    sctx.setTransform(zoom, 0, 0, zoom, W / 2 * (1 - zoom), H / 2 * (1 - zoom));
+    sctx.imageSmoothingEnabled = false;
+    // lưới chấm mờ cho cảm giác mặt đất
+    sctx.fillStyle = "rgba(233,236,228,0.06)";
+    for (let x = 16; x < W; x += 48) for (let y = 16; y < H; y += 48) sctx.fillRect(x, y, 2, 2);
+    const list = wolves.slice().sort((a, b) => a.y - b.y);
+    for (const w of list) {
+      sctx.fillStyle = "rgba(0,0,0,0.28)";
+      sctx.beginPath(); sctx.ellipse(w.x, w.y, 15, 5, 0, 0, Math.PI * 2); sctx.fill();
+      const f = w.moving ? Math.floor(w.phase) % FRAMES : 0;
+      const bob = SOURCE[w.dir].still && w.moving ? Math.round(Math.sin(w.phase / FRAMES * Math.PI * 2)) : 0;
+      drawSprite(sctx, w.dir, f, Math.round(w.x), Math.round(w.y) + 2, 64, true, bob);
+    }
+    sctx.fillStyle = "#4de6ff";
+    sctx.strokeStyle = "#000";
+    sctx.lineWidth = 2;
+    sctx.beginPath(); sctx.arc(player.x, player.y - 16, 16, 0, Math.PI * 2); sctx.fill(); sctx.stroke();
+  }
+
+  // --- Vòng lặp ---
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (playing) {
+      acc += dt;
+      const step = 1 / fps;
+      while (acc >= step) { acc -= step; frame = (frame + 1) % FRAMES; }
+      stepScene(dt);
+    }
+    drawCompass();
+    drawScene();
+    requestAnimationFrame(loop);
+  }
+
+  // --- Điều khiển ---
+  function pressed(on, off) { on.setAttribute("aria-pressed", "true"); off.setAttribute("aria-pressed", "false"); }
+  const vDetail = document.getElementById("view-detail"), vGame = document.getElementById("view-game");
+  vDetail.addEventListener("click", () => { view = "detail"; pressed(vDetail, vGame); });
+  vGame.addEventListener("click", () => { view = "game"; pressed(vGame, vDetail); });
+  const fpsIn = document.getElementById("fps");
+  fpsIn.addEventListener("input", () => { fps = Number(fpsIn.value); document.getElementById("fps-val").textContent = fpsIn.value; });
+  const playBtn = document.getElementById("play");
+  playBtn.addEventListener("click", () => { playing = !playing; playBtn.textContent = playing ? "Tạm dừng" : "Chạy tiếp"; });
+  document.getElementById("step").addEventListener("click", () => {
+    playing = false; playBtn.textContent = "Chạy tiếp"; frame = (frame + 1) % FRAMES;
+  });
+  const z1 = document.getElementById("zoom1"), z2 = document.getElementById("zoom2");
+  z1.addEventListener("click", () => { zoom = 1; pressed(z1, z2); });
+  z2.addEventListener("click", () => { zoom = 2; pressed(z2, z1); });
+  const countIn = document.getElementById("count");
+  countIn.addEventListener("input", () => { document.getElementById("count-val").textContent = countIn.value; spawn(Number(countIn.value)); });
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    playing = false; playBtn.textContent = "Chạy tiếp";
+  }
+
+  Promise.all(Object.entries(files).map(([k, f]) => load(f).then((i) => { img[k] = i; }))).then(() => {
+    spawn(40);
+    requestAnimationFrame(loop);
+  });
+})();
+</script>
