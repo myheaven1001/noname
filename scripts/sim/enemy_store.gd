@@ -22,6 +22,8 @@ var knock := PackedVector2Array()  # vận tốc đẩy lùi, tắt dần
 var sep := PackedVector2Array()  # lực tách khỏi hàng xóm, tính lại mỗi 2 tick
 var dir := PackedVector2Array()  # hướng đòn đã khoá (vd. hướng lao)
 var facing := PackedFloat32Array()  # 1 hoặc -1, để lật sprite
+var heading := PackedByteArray()  # hướng nhìn theo 8 cung 45° (0 = phải, theo chiều kim đồng hồ), cho sprite
+var anim := PackedFloat32Array()  # pha bước chân, tăng theo quãng đường đi (đơn vị: khung hình)
 var hp := PackedFloat32Array()
 var state := PackedInt32Array()
 var timer := PackedFloat32Array()  # đếm ngược của trạng thái hiện tại
@@ -46,6 +48,8 @@ func _init(cap: int) -> void:
 	sep.resize(cap)
 	dir.resize(cap)
 	facing.resize(cap)
+	heading.resize(cap)
+	anim.resize(cap)
 	hp.resize(cap)
 	state.resize(cap)
 	timer.resize(cap)
@@ -75,6 +79,8 @@ func spawn(t: int, p: Vector2, health: float) -> int:
 	sep[i] = Vector2.ZERO
 	dir[i] = Vector2.RIGHT
 	facing[i] = 1.0
+	heading[i] = 2  # nhìn xuống (về phía camera)
+	anim[i] = fmod(uid[i] * 0.618034, 1.0) * 6.0  # pha bắt đầu khác nhau để đàn không bước đều
 	hp[i] = health
 	state[i] = S_CHASE
 	timer[i] = 0.0
@@ -104,6 +110,8 @@ func remove(i: int) -> void:
 	sep[i] = sep[last]
 	dir[i] = dir[last]
 	facing[i] = facing[last]
+	heading[i] = heading[last]
+	anim[i] = anim[last]
 	hp[i] = hp[last]
 	state[i] = state[last]
 	timer[i] = timer[last]

@@ -26,6 +26,18 @@ var immortal_chance := PackedFloat32Array()  # xác suất rơi tiên linh thạ
 var vacuum_chance := PackedFloat32Array()  # xác suất rơi Tụ linh phù (hút mọi linh khí)
 var dash_chance := PackedFloat32Array()  # tỉ lệ con sinh ra biết lao (0 với quái không có đòn lao)
 var max_radius := 0.0
+# Hình: sprite = 0 là hình tròn tạm, 1 là atlas Sói yêu. Cỡ ô vẽ (px) và mức pha màu `color` vào sprite.
+const SPRITE_NONE := 0
+const SPRITE_WOLF := 1
+const SPRITES := {"": SPRITE_NONE, "wolf": SPRITE_WOLF}
+var sprite := PackedInt32Array()
+var sprite_size := PackedFloat32Array()
+var sprite_tint := PackedFloat32Array()
+# Thời lượng các trạng thái có đòn đánh (0 nếu không có), để chọn khung hình theo tiến độ.
+var t_windup := PackedFloat32Array()
+var t_recover := PackedFloat32Array()
+var t_claw_windup := PackedFloat32Array()
+var t_claw_recover := PackedFloat32Array()
 
 
 static func load_csv(path: String) -> EnemyDB:
@@ -56,5 +68,18 @@ func _add(row: Dictionary) -> void:
 	stone_count.append(row["stone_count"])
 	immortal_chance.append(row["immortal_chance"])
 	vacuum_chance.append(row["vacuum_chance"])
-	dash_chance.append(row["dash_chance"] if row["dash_chance"] is float else 0.0)
+	dash_chance.append(_num(row["dash_chance"]))
 	max_radius = maxf(max_radius, row["radius"])
+	assert(SPRITES.has(row["sprite"]), "Sprite không tồn tại: %s" % row["sprite"])
+	sprite.append(SPRITES[row["sprite"]])
+	sprite_size.append(_num(row["sprite_size"]))
+	sprite_tint.append(_num(row["sprite_tint"]))
+	t_windup.append(_num(row["windup"]))
+	t_recover.append(_num(row["recover"]))
+	t_claw_windup.append(_num(row["claw_windup"]))
+	t_claw_recover.append(_num(row["claw_recover"]))
+
+
+## Ô số để trống (cột riêng của hành vi khác) đọc thành 0.
+static func _num(v: Variant) -> float:
+	return v if v is float else 0.0

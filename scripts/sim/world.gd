@@ -21,6 +21,9 @@ const MAX_CANDIDATES := 24  # số hàng xóm tối đa phải xét, giữ chi p
 const SEPARATION := 0.5
 const KNOCKBACK := 160.0
 const KNOCK_DECAY := 0.75
+# Sải chân của sprite (px đi được mỗi khung hình) ở ô vẽ 64 px: Đi một vòng 6 khung ≈ 32 px, Chạy ≈ 96 px.
+const WALK_PX_PER_FRAME := 32.0 / 6.0
+const RUN_PX_PER_FRAME := 96.0 / 6.0
 const HP_PER_EXTRA_PLAYER := 0.6
 const HP_PER_MINUTE := 0.25
 # Quân số tăng dần khi bật wave_ramp (cảnh chơi); bench và các test đặt target_population cố định.
@@ -526,6 +529,10 @@ func _move_enemies() -> void:
 	var knock := s.knock
 	var type := s.type
 	var facing := s.facing
+	var heading := s.heading
+	var anim := s.anim
+	var state := s.state
+	var sprite_size := db.sprite_size
 	var sep := s.sep
 	var radius := db.radius
 	var start := grid.cell_start
@@ -586,6 +593,14 @@ func _move_enemies() -> void:
 		knock[i] = knock[i] * KNOCK_DECAY
 		if absf(v.x) > 5.0:
 			facing[i] = signf(v.x)
+		# Hướng nhìn và pha bước chân theo vận tốc tự đi (không tính bị đẩy lùi).
+		var sp2 := vel[i].length_squared()
+		if sp2 > 100.0 and sprite_size[type[i]] > 0.0:
+			heading[i] = posmod(roundi(vel[i].angle() / (PI / 4.0)), 8)
+			var stride := RUN_PX_PER_FRAME if state[i] == EnemyStore.S_DASH else WALK_PX_PER_FRAME
+			anim[i] += sqrt(sp2) * DT / (stride * sprite_size[type[i]] / 64.0)
+			if anim[i] > 60.0:
+				anim[i] -= 60.0  # bội chung của số khung các dải, giữ số nhỏ để không mất độ chính xác
 		var np := p + v * DT + sep[i] * SEPARATION
 		var rk := rock_at[clampi(int(p.y * rock_inv), 0, rock_rows - 1) * rock_cols
 			+ clampi(int(p.x * rock_inv), 0, rock_cols - 1)]

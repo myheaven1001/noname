@@ -64,8 +64,9 @@ func _run(db: EnemyDB, n_players: int, population: int) -> void:
 					elif e[&"src"] == &"claw":
 						claw_hits += 1
 		var f0 := Time.get_ticks_usec()
+		EnemyRenderer.fill_cells(w, buf)  # như EnemyRenderer._process: phần hình mỗi tick, vị trí mỗi frame
 		for f in FRAMES_PER_TICK:
-			EnemyRenderer.fill_buffer(w, float(f) / FRAMES_PER_TICK, buf)
+			EnemyRenderer.fill_positions(w, float(f) / FRAMES_PER_TICK, buf)
 		fill_usec += Time.get_ticks_usec() - f0
 	_check_invariants(w)
 	ticks.sort()

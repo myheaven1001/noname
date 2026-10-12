@@ -1,0 +1,54 @@
+{
+ "cell": 128,
+ "rows": [
+  "up",
+  "upright",
+  "right",
+  "down",
+  "downleft"
+ ],
+ "actions": [
+  [
+   "walk",
+   6
+  ],
+  [
+   "run",
+   6
+  ],
+  [
+   "windup",
+   3
+  ],
+  [
+   "claw",
+   4
+  ],
+  [
+   "recover",
+   4
+  ]
+ ],
+ "fallback": {
+  "run/up": "walk/up",
+  "windup/up": "walk/up khung 1",
+  "claw/up": "walk/up khung 1",
+  "recover/up": "walk/up khung 1",
+  "run/upright": "walk/upright",
+  "windup/upright": "walk/upright khung 1",
+  "claw/upright": "walk/upright khung 1",
+  "recover/upright": "walk/upright khung 1",
+  "run/right": "walk/right",
+  "windup/right": "walk/right khung 1",
+  "claw/right": "walk/right khung 1",
+  "recover/right": "walk/right khung 1",
+  "walk/down": "walk/downleft",
+  "run/down": "run/downleft",
+  "windup/down": "walk/downleft khung 1",
+  "claw/down": "walk/downleft khung 1",
+  "recover/down": "walk/downleft khung 1",
+  "windup/downleft": "walk/downleft khung 1",
+  "claw/downleft": "walk/downleft khung 1",
+  "recover/downleft": "walk/downleft khung 1"
+ }
+}

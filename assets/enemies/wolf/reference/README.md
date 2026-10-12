@@ -432,5 +432,7 @@ with black smoke, no pendant, torn scarf
 
 Dải animation: `tools/art/sheet_frames.py <thư_mục> hướng=ảnh ... --action <mã> --frames <N> --scale 0.531`
 (xoá nền, tách khung, căn chân, thu về ô 256 và cỡ 64; `--scale` giữ mọi hành động cùng một cỡ).
-Ảnh đơn: `tools/art/reference_scale.py` để khôi phục lưới pixel, xoá nền và thu về cỡ dùng trong game. Bước tiếp theo, chưa làm: khoá các khung về bảng màu của mẫu, xếp vào sprite sheet
-(mỗi hàng một hành động, mỗi hướng một sheet) và nối vào renderer qua ô `custom.y`.
+Đưa vào game: `python3 tools/art/wolf_atlas.py` gom mọi dải đã có thành `sprites/wolf_atlas.png`
+(hàng = 5 hướng vẽ, cột = khung của Đi, Chạy, Gồng, Cào, Nghỉ nối nhau; ô 128 px). Dải còn thiếu được
+thay tạm và liệt kê trong `sprites/wolf_atlas.json`. Có ảnh mới thì chạy lại lệnh này, game tự dùng.
+Ảnh đơn: `tools/art/reference_scale.py` để khôi phục lưới pixel, xoá nền và thu về cỡ dùng trong game. Chưa làm: khoá các khung về bảng màu của mẫu.
