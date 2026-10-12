@@ -2,6 +2,7 @@
 
     python3 tools/art/wolf_prompts.py                # in bộ prompt giai đoạn 1 dạng Markdown
     python3 tools/art/wolf_prompts.py --phase 2      # giai đoạn 2
+    python3 tools/art/wolf_prompts.py --todo         # chỉ các prompt chưa có ảnh trong assets/enemies/wolf
     python3 tools/art/wolf_prompts.py --json         # in mọi giai đoạn dạng JSON (trang artifact dùng)
 
 Giai đoạn 1: Đi + Chạy cho 5 hướng vẽ (ảnh tĩnh dùng concept, 3 hướng phía trái lật ngang).
@@ -10,6 +11,9 @@ Giai đoạn 2: Cào + Gồng + Nghỉ + Chết, đủ để mọi trạng thái
 """
 import json
 import sys
+from pathlib import Path
+
+WOLF = Path(__file__).resolve().parents[2] / "assets/enemies/wolf"
 
 COMMON = (
     "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, "
@@ -108,8 +112,19 @@ def prompts(phase=None):
     return out
 
 
+def todo():
+    """Các prompt chưa có dải đã xử lý (assets/enemies/wolf/<hành động>/wolf_<hướng>_<hành động>.png).
+    Thứ tự ưu tiên: giai đoạn 1 trước, trong mỗi giai đoạn theo thứ tự ACTIONS."""
+    out = []
+    for p in prompts():
+        act = p["file"].rsplit("_", 1)[1].removesuffix(".png")
+        if not (WOLF / act / p["file"]).exists():
+            out.append(p)
+    return out
+
+
 def markdown(phase=1):
-    items = prompts(phase)
+    items = todo() if phase == "todo" else prompts(phase)
     n_act = len({p["action"] for p in items})
     lines = [
         f"**{len(items)} prompt** ({n_act} hành động × {len(DIRECTIONS)} hướng). Mỗi khối dưới đây đã ghép đủ, "
@@ -129,7 +144,9 @@ def markdown(phase=1):
 
 if __name__ == "__main__":
     if "--json" in sys.argv:
-        print(json.dumps({"negative": NEGATIVE, "prompts": prompts()}, ensure_ascii=False, indent=1))
+        print(json.dumps({"negative": NEGATIVE, "prompts": prompts(), "todo": todo()}, ensure_ascii=False, indent=1))
+    elif "--todo" in sys.argv:
+        print(markdown("todo"))
     else:
         phase = int(sys.argv[sys.argv.index("--phase") + 1]) if "--phase" in sys.argv else 1
         print(markdown(phase))
