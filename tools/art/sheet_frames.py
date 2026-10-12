@@ -53,9 +53,13 @@ def split_cells(sheet, n, margin=0.2):
                      (max(0, -left), 0))
         cells.append(canvas)
     boxes = [c.getbbox() for c in cells]
-    if any(b is None for b in boxes):
-        raise ValueError("có ô trống: dải không có đủ %d khung" % n)
-    union = (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+    found = [b for b in boxes if b]
+    if len(found) < n:
+        # Chỉ chấp nhận ô trống ở cuối dải (khung cuối của Chết có thể đã tan hết); ô trống giữa dải là lỗi.
+        if not found or boxes.index(None) < len(found):
+            raise ValueError("có ô trống: dải không có đủ %d khung" % n)
+        print("CẢNH BÁO: %d khung cuối trống, giữ nguyên là khung trong suốt" % (n - len(found)))
+    union = (min(b[0] for b in found), min(b[1] for b in found), max(b[2] for b in found), max(b[3] for b in found))
     return cells, boxes, union
 
 
@@ -121,9 +125,10 @@ def main():
         gif[0].save(out / f"wolf_{name}_{a.action}.gif", save_all=True, append_images=gif[1:], duration=100, loop=0)
 
         # Kiểm tra: chiều cao và đường mặt đất (đáy nội dung) của từng khung, trong toạ độ ô gốc.
-        heights = [b[3] - b[1] for b in boxes]
-        grounds = [b[3] for b in boxes]
-        widths = [b[2] - b[0] for b in boxes]
+        found = [b for b in boxes if b]
+        heights = [b[3] - b[1] for b in found]
+        grounds = [b[3] for b in found]
+        widths = [b[2] - b[0] for b in found]
         report["directions"][name] = {
             "frames": len(cells),
             "union_px": [union[2] - union[0], union[3] - union[1]],

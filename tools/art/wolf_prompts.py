@@ -1,9 +1,12 @@
 """Nguồn duy nhất của prompt tạo ảnh Sói yêu. Ghép sẵn mỗi prompt thành một khối hoàn chỉnh.
 
-    python3 tools/art/wolf_prompts.py            # in bộ prompt giai đoạn 1 dạng Markdown
-    python3 tools/art/wolf_prompts.py --json     # in dạng JSON (trang artifact dùng)
+    python3 tools/art/wolf_prompts.py                # in bộ prompt giai đoạn 1 dạng Markdown
+    python3 tools/art/wolf_prompts.py --phase 2      # giai đoạn 2
+    python3 tools/art/wolf_prompts.py --json         # in mọi giai đoạn dạng JSON (trang artifact dùng)
 
-Giai đoạn 1: chỉ Đi + Chạy cho 5 hướng vẽ (ảnh tĩnh dùng concept, 3 hướng phía trái lật ngang).
+Giai đoạn 1: Đi + Chạy cho 5 hướng vẽ (ảnh tĩnh dùng concept, 3 hướng phía trái lật ngang).
+Giai đoạn 2: Gồng + Nghỉ + Chết, đủ để mọi trạng thái của Sói yêu (wolf.gd) có hình riêng:
+Đuổi = Đi, Gồng = Gồng, Lao = Chạy, Nghỉ = Nghỉ. Trúng đòn dùng nháy trắng có sẵn trong renderer.
 """
 import json
 import sys
@@ -29,6 +32,13 @@ SHEET = (
     "back into the first"
 )
 
+# Hành động chạy một lần (không lặp): bỏ câu "seamless loop", nói rõ khung đầu và cuối.
+SHEET_ONCE = (
+    "sprite sheet, {n} frames in one horizontal row, evenly spaced, every frame the same size and the same "
+    "character scale, feet on the same ground line in every frame, plays once from left to right and does "
+    "not loop"
+)
+
 # (mã, tên tiếng Việt, mô tả góc nhìn)
 DIRECTIONS = [
     ("up", "Lên",
@@ -47,39 +57,57 @@ DIRECTIONS = [
      "three-quarter front view, body turned down and to the left, same camera angle as the reference image"),
 ]
 
-# (mã, tên tiếng Việt, số khung, mô tả chuyển động)
+# (mã, tên tiếng Việt, số khung, mô tả chuyển động, lặp, giai đoạn)
 ACTIONS = [
     ("walk", "Đi", 6,
      "walking trot cycle: 1 front-left and hind-right paws step forward, 2 weight shifts onto them and the "
      "body dips slightly, 3 legs pass under the body and the body is at its highest, 4 front-right and "
      "hind-left paws step forward, 5 weight shifts and the body dips, 6 legs pass under the body; small "
-     "bouncy chibi steps, head steady, ears and tail flame swaying gently"),
+     "bouncy chibi steps, head steady, ears and tail flame swaying gently", True, 1),
     ("run", "Chạy", 6,
      "running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the "
      "air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push "
-     "while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind"),
+     "while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind", True, 1),
+    ("windup", "Gồng", 3,
+     "charging up before a dash, a clear warning pose: 1 stops and lowers the front of the body, ears turning "
+     "back, 2 crouches deeper with weight on the hind legs, purple runes glowing brighter, 3 fully crouched and "
+     "ready to spring, ears flat, eyes glowing intensely, tail flame flaring twice as large; the last frame is "
+     "held until the dash starts", False, 2),
+    ("recover", "Nghỉ", 4,
+     "recovering after a dash: 1 skidding to a stop with front paws braced forward and the body leaning back, "
+     "2 small stumble with the head dipping, 3 catching breath with tongue out and runes dimmed, 4 back to the "
+     "neutral standing pose of the reference image; tail flame smaller and dimmer than usual", False, 2),
+    ("death", "Chết", 5,
+     "defeat animation: 1 staggers with eyes squeezed shut, 2 collapses onto its side, 3 lies on the ground "
+     "and the body starts to turn translucent, 4 dissolves into blue spirit flame wisps and purple rune "
+     "sparks rising upward, 5 only a few small fading sparks remain where the body was", False, 2),
 ]
 
 
-def prompts():
-    """Danh sách prompt giai đoạn 1, mỗi phần tử: file, hướng, hành động, số khung, prompt hoàn chỉnh."""
+def prompts(phase=None):
+    """Danh sách prompt (một giai đoạn hoặc tất cả), mỗi phần tử: file, hướng, hành động, số khung, prompt."""
     out = []
-    for act, act_name, n, act_text in ACTIONS:
+    for act, act_name, n, act_text, loop, ph in ACTIONS:
+        if phase is not None and ph != phase:
+            continue
+        sheet = (SHEET if loop else SHEET_ONCE).format(n=n)
         for d, d_name, d_text in DIRECTIONS:
             out.append({
                 "file": f"wolf_{d}_{act}.png",
                 "direction": d_name,
                 "action": act_name,
                 "frames": n,
-                "prompt": ", ".join([COMMON, d_text, SHEET.format(n=n), act_text]),
+                "phase": ph,
+                "prompt": ", ".join([COMMON, d_text, sheet, act_text]),
             })
     return out
 
 
-def markdown():
-    items = prompts()
+def markdown(phase=1):
+    items = prompts(phase)
+    n_act = len({p["action"] for p in items})
     lines = [
-        f"**{len(items)} prompt** (2 hành động × {len(DIRECTIONS)} hướng). Mỗi khối dưới đây đã ghép đủ, "
+        f"**{len(items)} prompt** ({n_act} hành động × {len(DIRECTIONS)} hướng). Mỗi khối dưới đây đã ghép đủ, "
         "chép nguyên khối dán vào công cụ tạo ảnh, đính kèm `wolf_concept.webp`.",
         "",
         "| # | Tên file gửi lại | Hành động | Hướng | Khung |",
@@ -98,4 +126,5 @@ if __name__ == "__main__":
     if "--json" in sys.argv:
         print(json.dumps({"negative": NEGATIVE, "prompts": prompts()}, ensure_ascii=False, indent=1))
     else:
-        print(markdown())
+        phase = int(sys.argv[sys.argv.index("--phase") + 1]) if "--phase" in sys.argv else 1
+        print(markdown(phase))
