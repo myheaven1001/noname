@@ -5,8 +5,8 @@
     python3 tools/art/wolf_prompts.py --json         # in mọi giai đoạn dạng JSON (trang artifact dùng)
 
 Giai đoạn 1: Đi + Chạy cho 5 hướng vẽ (ảnh tĩnh dùng concept, 3 hướng phía trái lật ngang).
-Giai đoạn 2: Gồng + Nghỉ + Chết, đủ để mọi trạng thái của Sói yêu (wolf.gd) có hình riêng:
-Đuổi = Đi, Gồng = Gồng, Lao = Chạy, Nghỉ = Nghỉ. Trúng đòn dùng nháy trắng có sẵn trong renderer.
+Giai đoạn 2: Cào + Gồng + Nghỉ + Chết, đủ để mọi trạng thái của Sói yêu (wolf.gd) có hình riêng:
+Đuổi = Đi, Gồng cào + Cào = Cào, Gồng = Gồng, Lao = Chạy, Nghỉ = Nghỉ. Trúng đòn dùng nháy trắng có sẵn.
 """
 import json
 import sys
@@ -68,6 +68,11 @@ ACTIONS = [
      "running gallop cycle: 1 gather with legs under the body, 2 hind legs push off, 3 full extension in the "
      "air with front legs reaching forward and hind legs stretched back, 4 front paws land, 5 front legs push "
      "while hind legs swing forward, 6 hind paws land; ears pinned back, tail flame streaming behind", True, 1),
+    ("claw", "Cào", 4,
+     "claw swipe attack at close range: 1 rears up slightly and raises one front paw with claws out, runes "
+     "glowing, 2 paw pulled back high, ready to strike, 3 fast swipe across the front with three bright "
+     "lavender-white claw streaks in the air, 4 paw back on the ground in the neutral pose; body stays in "
+     "place", False, 2),
     ("windup", "Gồng", 3,
      "charging up before a dash, a clear warning pose: 1 stops and lowers the front of the body, ears turning "
      "back, 2 crouches deeper with weight on the hind legs, purple runes glowing brighter, 3 fully crouched and "

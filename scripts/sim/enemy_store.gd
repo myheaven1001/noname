@@ -6,7 +6,8 @@ extends RefCounted
 ## Trong vòng lặp nóng, lấy mảng ra biến local (var pos := store.pos) — nhanh hơn ~4 lần.
 
 ## Trạng thái dùng chung cho mọi hành vi có đòn đánh chuẩn bị (sói lao, tà tu bắn...).
-enum { S_CHASE, S_WINDUP, S_DASH, S_RECOVER }
+## S_CLAW_WINDUP / S_CLAW: đòn cận chiến ngắn (sói cào), không tính vào giới hạn MAX_ATTACKERS.
+enum { S_CHASE, S_WINDUP, S_DASH, S_RECOVER, S_CLAW_WINDUP, S_CLAW }
 
 var capacity: int
 var count := 0
@@ -25,11 +26,13 @@ var hp := PackedFloat32Array()
 var state := PackedInt32Array()
 var timer := PackedFloat32Array()  # đếm ngược của trạng thái hiện tại
 var cd := PackedFloat32Array()  # hồi chiêu đòn đặc biệt
+var claw_cd := PackedFloat32Array()  # hồi chiêu đòn cận chiến (cào)
 var stun := PackedFloat32Array()  # choáng/đóng băng còn lại
 var flash := PackedFloat32Array()  # nháy trắng khi trúng đòn
 var orbit_cd := PackedFloat32Array()  # chờ trước khi Hộ thể kiếm chém lại con này
 var hit_mask := PackedInt32Array()  # bit người chơi đã trúng trong cú lao hiện tại
 var target := PackedInt32Array()  # chỉ số người chơi đang nhắm
+var dasher := PackedByteArray()  # 1 nếu con này biết lao (gieo lúc sinh theo dash_chance)
 
 
 func _init(cap: int) -> void:
@@ -47,11 +50,13 @@ func _init(cap: int) -> void:
 	state.resize(cap)
 	timer.resize(cap)
 	cd.resize(cap)
+	claw_cd.resize(cap)
 	stun.resize(cap)
 	flash.resize(cap)
 	orbit_cd.resize(cap)
 	hit_mask.resize(cap)
 	target.resize(cap)
+	dasher.resize(cap)
 
 
 ## Trả về chỉ số con mới, hoặc -1 nếu đầy.
@@ -74,11 +79,13 @@ func spawn(t: int, p: Vector2, health: float) -> int:
 	state[i] = S_CHASE
 	timer[i] = 0.0
 	cd[i] = 0.0
+	claw_cd[i] = 0.0
 	stun[i] = 0.0
 	flash[i] = 0.0
 	orbit_cd[i] = 0.0
 	hit_mask[i] = 0
 	target[i] = -1
+	dasher[i] = 0
 	return i
 
 
@@ -101,8 +108,10 @@ func remove(i: int) -> void:
 	state[i] = state[last]
 	timer[i] = timer[last]
 	cd[i] = cd[last]
+	claw_cd[i] = claw_cd[last]
 	stun[i] = stun[last]
 	flash[i] = flash[last]
 	orbit_cd[i] = orbit_cd[last]
 	hit_mask[i] = hit_mask[last]
 	target[i] = target[last]
+	dasher[i] = dasher[last]

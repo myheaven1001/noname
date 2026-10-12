@@ -73,6 +73,8 @@ static func fill_buffer(w: World, alpha: float, buf: PackedFloat32Array) -> int:
 		var c := colors[t]
 		if state[i] == EnemyStore.S_WINDUP:
 			c = c.lerp(WINDUP_COLOR, 0.7)
+		elif state[i] == EnemyStore.S_CLAW_WINDUP:
+			c = c.lerp(WINDUP_COLOR, 0.35)
 		elif stun[i] > 0.0:
 			c = c.lerp(STUN_COLOR, 0.6)
 		buf[o] = size * facing[i]

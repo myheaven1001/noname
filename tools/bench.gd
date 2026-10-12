@@ -12,11 +12,14 @@ var _failed := false
 
 func _init() -> void:
 	var db := EnemyDB.load_csv("res://data/enemies.csv")
-	print("người chơi | quái | tick TB | tick p99 | tick max | buffer/frame | giết | gồng→lao | huỷ | trúng lao | cảnh giới P1")
+	print("người chơi | quái | tick TB | tick p99 | tick max | buffer/frame | giết | gồng→lao | huỷ | trúng lao | cào | trúng cào | cảnh giới P1")
 	for n_players in [1, 4]:
 		for n in [500, 1000, 2000]:
 			_run(db, n_players, n)
 	_test_cancel(db)
+	_test_dash_chance(db)
+	_test_dash_only_near(db)
+	_test_claw(db)
 	_test_level_up(db)
 	_test_tribulation(db, true)
 	_test_tribulation(db, false)
@@ -40,6 +43,8 @@ func _run(db: EnemyDB, n_players: int, population: int) -> void:
 	var dashes := 0
 	var cancels := 0
 	var dash_hits := 0
+	var claws := 0
+	var claw_hits := 0
 	var kills0 := w.kills
 	for t in MEASURE_TICKS:
 		_drive(w, WARMUP_TICKS + t)
@@ -51,9 +56,13 @@ func _run(db: EnemyDB, n_players: int, population: int) -> void:
 					dashes += 1
 				&"attack_cancel":
 					cancels += 1
+				&"claw":
+					claws += 1
 				&"player_hit":
-					if e[&"dmg"] >= 12.0:
+					if e[&"src"] == &"dash":
 						dash_hits += 1
+					elif e[&"src"] == &"claw":
+						claw_hits += 1
 		var f0 := Time.get_ticks_usec()
 		for f in FRAMES_PER_TICK:
 			EnemyRenderer.fill_buffer(w, float(f) / FRAMES_PER_TICK, buf)
@@ -64,12 +73,14 @@ func _run(db: EnemyDB, n_players: int, population: int) -> void:
 	for v in ticks:
 		avg += v
 	avg /= ticks.size()
-	print("%10d | %4d | %5.2f ms | %6.2f ms | %6.2f ms | %7.2f ms | %4d | %8d | %4d | %9d | %s" % [
+	print("%10d | %4d | %5.2f ms | %6.2f ms | %6.2f ms | %7.2f ms | %4d | %8d | %4d | %9d | %3d | %9d | %s" % [
 		n_players, w.store.count, avg / 1000.0, ticks[int(ticks.size() * 0.99)] / 1000.0,
 		ticks[ticks.size() - 1] / 1000.0, fill_usec / 1000.0 / (MEASURE_TICKS * FRAMES_PER_TICK),
-		w.kills - kills0, dashes, cancels, dash_hits, w.realms.title(w.players[0].realm)])
+		w.kills - kills0, dashes, cancels, dash_hits, claws, claw_hits, w.realms.title(w.players[0].realm)])
 	if dashes == 0:
 		_fail("sói không lao lần nào")
+	if claws == 0:
+		_fail("sói không cào lần nào")
 	if w.kills == kills0:
 		_fail("không giết được quái nào")
 
@@ -124,6 +135,7 @@ func _test_cancel(db: EnemyDB) -> void:
 	w.target_population = 1  # chỉ có đúng con sói này, bộ spawn không thêm con nào
 	var wolf := db.type_of("wolf")
 	var i := w.store.spawn(wolf, pl.pos + Vector2(150, 0), 1000.0)
+	w.store.dasher[i] = 1
 	var uid := w.store.uid[i]
 	var got_windup := false
 	for t in 60:
@@ -144,6 +156,95 @@ func _test_cancel(db: EnemyDB) -> void:
 		_fail("đóng băng không huỷ được đòn gồng")
 	else:
 		print("test huỷ đòn khi bị đóng băng: OK")
+
+
+## Khoảng 10% sói sinh ra biết lao (dash_chance trong enemies.csv); dơi không bao giờ.
+func _test_dash_chance(db: EnemyDB) -> void:
+	var w := World.new(db, 7)
+	w.add_player(World.ARENA * 0.5)
+	w.target_population = 3000
+	w.ai_enabled = false
+	for t in 120:
+		w.step()
+	var wolf := db.type_of("wolf")
+	var bat := db.type_of("bat")
+	var wolves := 0
+	var dashers := 0
+	for i in w.store.count:
+		if w.store.type[i] == wolf:
+			wolves += 1
+			dashers += w.store.dasher[i]
+		elif w.store.type[i] == bat and w.store.dasher[i]:
+			_fail("dơi được gieo biết lao")
+			return
+	var ratio := float(dashers) / maxi(wolves, 1)
+	if wolves < 300 or absf(ratio - float(db.rows[wolf]["dash_chance"])) > 0.04:
+		_fail("tỉ lệ sói biết lao lệch: %d / %d = %.3f" % [dashers, wolves, ratio])
+	else:
+		print("test tỉ lệ sói biết lao: %d / %d = %.1f%% OK" % [dashers, wolves, ratio * 100.0])
+
+
+## Sói biết lao chỉ gồng khi người chơi đã trong dash_trigger; sói không biết lao không bao giờ gồng.
+func _test_dash_only_near(db: EnemyDB) -> void:
+	var wolf := db.type_of("wolf")
+	var trigger: float = db.rows[wolf]["dash_trigger"]
+	for dasher in [0, 1]:
+		var w := World.new(db, 2)
+		var pl := w.add_player(Vector2(1000, 1000))
+		pl.skills = {}  # không có kiếm khí đẩy lùi sói
+		w.target_population = 1
+		var i := w.store.spawn(wolf, pl.pos + Vector2(trigger + 200.0, 0), 1000.0)
+		w.store.dasher[i] = dasher
+		var windup_dist := -1.0
+		for t in 150:
+			w.step()
+			if w.store.state[0] == EnemyStore.S_WINDUP:
+				windup_dist = w.store.pos[0].distance_to(pl.pos)
+				break
+		if dasher == 0 and windup_dist >= 0.0:
+			_fail("sói không biết lao vẫn gồng lao")
+			return
+		if dasher == 1 and (windup_dist < 0.0 or windup_dist > trigger + 1.0):
+			_fail("sói biết lao không gồng đúng lúc vào tầm (khoảng cách %.0f, tầm %.0f)" % [windup_dist, trigger])
+			return
+	print("test chỉ lao khi đã vào gần: OK")
+
+
+## Áp sát thì cào trúng; người chơi lùi khỏi tầm hoặc vòng ra sau lưng trong lúc gồng cào thì né được.
+func _test_claw(db: EnemyDB) -> void:
+	var wolf := db.type_of("wolf")
+	var dmg: float = db.rows[wolf]["claw_dmg"]
+	# kịch bản: [mô tả, dịch người chơi khi sói đang gồng cào, có trúng không]
+	var cases := [["đứng yên", Vector2.ZERO, true], ["lùi khỏi tầm", Vector2(-120, 0), false],
+		["vòng ra sau lưng", Vector2(70, 0), false]]
+	for c in cases:
+		var w := World.new(db, 4)
+		var pl := w.add_player(Vector2(1000, 1000))
+		pl.skills = {}  # không có kiếm khí đẩy lùi sói
+		pl.iframes = 0.0
+		w.target_population = 1
+		w.store.spawn(wolf, pl.pos + Vector2(40, 0), 1000.0)
+		var hp0 := pl.hp
+		var moved := false
+		var hit := false
+		for t in 60:
+			w.step()
+			if w.store.state[0] == EnemyStore.S_CLAW_WINDUP and not moved:
+				moved = true
+				pl.pos += c[1]
+				pl.prev_pos = pl.pos
+			for e in w.events:
+				if e[&"t"] == &"player_hit" and e[&"src"] == &"claw":
+					hit = true
+			if w.store.state[0] == EnemyStore.S_CLAW:
+				break
+		if not moved:
+			_fail("sói áp sát không gồng cào")
+			return
+		if hit != c[2] or (hit and absf(hp0 - pl.hp - dmg) > 0.01):
+			_fail("cào sai khi người chơi %s: trúng=%s, máu %.1f → %.1f" % [c[0], hit, hp0, pl.hp])
+			return
+	print("test cào (trúng / lùi né / vòng sau né): OK")
 
 
 func _fail(msg: String) -> void:

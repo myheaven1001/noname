@@ -375,6 +375,8 @@ func _spawn() -> void:
 		var i := store.spawn(t, p, db.max_hp[t] * scale)
 		if i < 0:
 			return
+		if db.dash_chance[t] > 0.0:
+			store.dasher[i] = 1 if rng.randf() < db.dash_chance[t] else 0
 		emit(&"spawn", i, {&"type": t})
 
 
@@ -420,7 +422,7 @@ func _update_strikes() -> void:
 		for pl: PlayerState in players:
 			var rr := st.z + PLAYER_RADIUS
 			if pl.pos.distance_squared_to(p) < rr * rr:
-				_hurt_player(pl, st.w, false)
+				hurt_player(pl, st.w, false, &"strike")
 		var n := query_enemies(p, st.z)
 		for q in n:
 			var j := scratch[q]
@@ -447,6 +449,7 @@ func _update_enemies() -> void:
 	var state := s.state
 	var timer := s.timer
 	var cd := s.cd
+	var claw_cd := s.claw_cd
 	var stun := s.stun
 	var flash := s.flash
 	var orbit_cd := s.orbit_cd
@@ -466,6 +469,7 @@ func _update_enemies() -> void:
 	for i in n:
 		timer[i] -= DT
 		cd[i] -= DT
+		claw_cd[i] -= DT
 		if flash[i] > 0.0:
 			flash[i] = maxf(flash[i] - DT, 0.0)
 		if orbit_cd[i] > 0.0:
@@ -474,6 +478,8 @@ func _update_enemies() -> void:
 			stun[i] -= DT
 			if state[i] == EnemyStore.S_WINDUP or state[i] == EnemyStore.S_DASH:
 				_cancel_attack(i)
+			elif state[i] == EnemyStore.S_CLAW_WINDUP:
+				state[i] = EnemyStore.S_CHASE  # cào bị ngắt: không cần báo client, vòng cảnh báo cào tự tắt
 			vel[i] = Vector2.ZERO
 			continue
 		if not ai_enabled:
@@ -610,17 +616,17 @@ func _contact_damage() -> void:
 						if s.hit_mask[j] & bit:
 							continue
 						s.hit_mask[j] |= bit
-						_hurt_player(pl, db.rows[s.type[j]]["dash_dmg"], true)
-					else:
-						_hurt_player(pl, db.contact_dmg[s.type[j]], false)
+						hurt_player(pl, db.rows[s.type[j]]["dash_dmg"], true, &"dash")
+					elif db.contact_dmg[s.type[j]] > 0.0:
+						hurt_player(pl, db.contact_dmg[s.type[j]], false, &"contact")
 
 
-func _hurt_player(pl: PlayerState, dmg: float, ignore_iframes: bool) -> void:
+func hurt_player(pl: PlayerState, dmg: float, ignore_iframes: bool, src: StringName) -> void:
 	if pl.iframes > 0.0 and not ignore_iframes:
 		return
 	pl.hp -= dmg
 	pl.iframes = PLAYER_IFRAMES
-	events.append({&"t": &"player_hit", &"player": pl.id, &"dmg": dmg})
+	events.append({&"t": &"player_hit", &"player": pl.id, &"dmg": dmg, &"src": src})
 	if pl.hp <= 0.0:
 		pl.deaths += 1
 		if pl.trib_level > 0:

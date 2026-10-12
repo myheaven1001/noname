@@ -24,6 +24,7 @@ var stone_chance := PackedFloat32Array()  # xác suất rơi linh thạch (mỗi
 var stone_count := PackedFloat32Array()
 var immortal_chance := PackedFloat32Array()  # xác suất rơi tiên linh thạch
 var vacuum_chance := PackedFloat32Array()  # xác suất rơi Tụ linh phù (hút mọi linh khí)
+var dash_chance := PackedFloat32Array()  # tỉ lệ con sinh ra biết lao (0 với quái không có đòn lao)
 var max_radius := 0.0
 
 
@@ -55,4 +56,5 @@ func _add(row: Dictionary) -> void:
 	stone_count.append(row["stone_count"])
 	immortal_chance.append(row["immortal_chance"])
 	vacuum_chance.append(row["vacuum_chance"])
+	dash_chance.append(row["dash_chance"] if row["dash_chance"] is float else 0.0)
 	max_radius = maxf(max_radius, row["radius"])

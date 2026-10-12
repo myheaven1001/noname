@@ -5,6 +5,7 @@ extends SceneTree
 ##   FRAMES=n     chụp ở frame thứ n (mặc định 900)
 ##   DEMO=1       người chơi tự chạy vòng và tự chọn kỹ năng chủ động, game tua nhanh x3
 ##   WHEN=trib    (cùng DEMO) chụp lúc thiên kiếp đang có vòng sét thay vì theo FRAMES
+##   WHEN=claw    chụp lúc có ít nhất 2 con sói đang gồng cào quanh người chơi
 ##   STATES=1     bật nhãn trạng thái quái (ĐUỔI / GỒNG / LAO / NGHỈ)
 
 var main: Node
@@ -34,6 +35,13 @@ func _process(_delta: float) -> bool:
 		var w: World = main.world
 		trib_frames = trib_frames + 1 if main.player.trib_level > 0 and w.strike_count >= 2 else 0
 		ready = trib_frames == 12
+	if when == "claw" and frames > 60:
+		var w: World = main.world
+		var n := 0
+		for i in w.store.count:
+			if w.store.state[i] == EnemyStore.S_CLAW_WINDUP:
+				n += 1
+		ready = n >= 2
 	if ready:
 		var path := OS.get_environment("SHOT") if OS.has_environment("SHOT") else "user://shot.png"
 		root.get_texture().get_image().save_png(path)

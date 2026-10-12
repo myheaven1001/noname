@@ -5,13 +5,14 @@ extends Node2D
 ## Hiệu ứng ngắn (sét, lên tầng, đột phá) sinh từ `World.events` qua on_events() — đúng như client mạng
 ## sẽ làm khi nhận sự kiện từ server.
 
-const STATE_NAMES := ["ĐUỔI", "GỒNG", "LAO", "NGHỈ"]
+const STATE_NAMES := ["ĐUỔI", "GỒNG", "LAO", "NGHỈ", "GỒNG CÀO", "CÀO"]
 const PLAYER_COLORS := [Color(0.3, 0.9, 1.0), Color(1.0, 0.85, 0.3), Color(0.5, 1.0, 0.5), Color(1.0, 0.5, 0.9)]
 const DEBUG_RADIUS := 320.0
 const JADE := Color(0.44, 0.83, 0.69)
 const LIGHTNING := Color(0.78, 0.86, 1.0)
 const HEAVEN := Color(0.86, 0.74, 1.0)  # thiên lôi: tím nhạt
 const GOLD := Color(1.0, 0.83, 0.42)
+const CLAW := Color(1.0, 0.45, 0.3)
 
 var world: World
 var top := false
@@ -42,6 +43,8 @@ func on_events(events: Array[Dictionary]) -> void:
 				_effects.append({"k": "strike", "pos": e[&"pos"], "r": e[&"radius"], "t0": now, "life": 0.4, "seed": randi()})
 			&"level_up":
 				_effects.append({"k": "ring", "player": e[&"player"], "r": 90.0, "t0": now, "life": 0.6, "color": JADE})
+			&"claw":
+				_effects.append({"k": "claw", "pos": e[&"pos"], "dir": e[&"dir"], "t0": now, "life": 0.18})
 			&"breakthrough":
 				_effects.append({"k": "ring", "player": e[&"player"], "r": 260.0, "t0": now, "life": 1.3, "color": GOLD})
 
@@ -76,6 +79,20 @@ func _draw_ground(a: float) -> void:
 		var progress := clampf(1.0 - s.timer[i] / float(cfg["windup"]), 0.0, 1.0)
 		draw_line(p, end, Color(1.0, 0.15, 0.1, 0.22), width)
 		draw_line(p, p.lerp(end, progress), Color(1.0, 0.2, 0.1, 0.5), width)
+	# Quạt cảnh báo của sói đang gồng cào: đúng tầm và góc của đòn (WolfBehavior), đậm dần tới lúc cào.
+	for i in s.count:
+		if s.state[i] != EnemyStore.S_CLAW_WINDUP:
+			continue
+		var cfg: Dictionary = world.db.rows[s.type[i]]
+		var p := s.prev_pos[i].lerp(s.pos[i], a)
+		var reach := WolfBehavior.claw_reach(world, i)
+		var progress := clampf(1.0 - s.timer[i] / float(cfg["claw_windup"]), 0.0, 1.0)
+		var ang := s.dir[i].angle()
+		var half := acos(WolfBehavior.CLAW_CONE_COS)
+		var fan := PackedVector2Array([p])
+		for k in 9:
+			fan.append(p + Vector2.from_angle(ang - half + half * 2.0 * k / 8.0) * reach)
+		draw_colored_polygon(fan, Color(CLAW, 0.12 + 0.25 * progress))
 	# Vòng cảnh báo thiên lôi: viền + đĩa lớn dần tới lúc sét đánh.
 	for k in world.strike_count:
 		var p := world.strike_pos[k]
@@ -137,6 +154,15 @@ func _draw_effects(a: float) -> void:
 				_draw_bolt(e["pos"], 420.0, e["seed"], Color(HEAVEN, 1.0 - t), 6.0)
 				draw_circle(e["pos"], e["r"], Color(1, 1, 1, 0.5 * (1.0 - t)))
 				draw_arc(e["pos"], e["r"] * (1.0 + 0.5 * t), 0.0, TAU, 40, Color(HEAVEN, 1.0 - t), 3.0)
+			"claw":
+				# Ba vệt vuốt song song quét ngang hình quạt trước mặt sói.
+				var d: Vector2 = e["dir"]
+				var side := d.orthogonal()
+				var c: Vector2 = e["pos"] + d * 30.0
+				for k in 3:
+					var off := side * (k - 1) * 8.0
+					draw_line(c + off - side * 18.0 - d * 6.0, c + off + side * 18.0 + d * 6.0,
+						Color(CLAW, 1.0 - t), 3.0)
 			"ring":
 				var who: int = e["player"]
 				if who < world.players.size():
