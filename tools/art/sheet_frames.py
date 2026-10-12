@@ -63,12 +63,16 @@ def split_cells(sheet, n, margin=0.2):
     return cells, boxes, union
 
 
-def place(frame, size, pad, scale, resample):
-    """Thu theo `scale`, đặt vào ô size×size: căn giữa ngang, đáy khung bao sát lề dưới."""
+def place(frame, size, pad, scale, resample, center_x=None):
+    """Thu theo `scale`, đặt vào ô size×size, đáy khung bao sát lề dưới. Căn giữa ngang theo cả khung,
+    hoặc theo cột `center_x` (toạ độ trong `frame`) nếu có. Phần tràn khỏi ô bị cắt."""
     w, h = max(1, round(frame.width * scale)), max(1, round(frame.height * scale))
     small = frame.resize((w, h), resample)
+    x = (size - w) // 2 if center_x is None else round(size / 2 - center_x * scale)
     cell = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    cell.alpha_composite(small, ((size - w) // 2, size - pad - h))
+    canvas = Image.new("RGBA", (size + 2 * w, size + h), (0, 0, 0, 0))  # chừa chỗ để dán lệch ra ngoài ô
+    canvas.alpha_composite(small, (x + w, size - pad - h + h))
+    cell.alpha_composite(canvas.crop((w, h, w + size, h + size)))
     return cell
 
 
@@ -83,6 +87,11 @@ def main():
     ap.add_argument("--action", default="walk")
     ap.add_argument("--scale", type=float, default=0.0,
                     help="tỉ lệ thu nhỏ cố định (0 = tự tính theo khung bao lớn nhất); dùng chung giữa các hành động")
+    ap.add_argument("--dir-scale", default="",
+                    help="nhân thêm tỉ lệ riêng từng hướng, vd. right=0.76,up=0.98 (khi AI vẽ thân to nhỏ khác dải Đi)")
+    ap.add_argument("--anchor-frame", type=int, default=-1,
+                    help="căn giữa ngang theo thân ở khung này (đánh số từ 1) thay vì theo khung bao hợp; "
+                         "dùng khi có hiệu ứng (vệt vuốt) làm lệch khung bao")
     a = ap.parse_args()
     out = Path(a.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -102,14 +111,21 @@ def main():
         print("CẢNH BÁO: với tỉ lệ %.4f, khung bao lớn nhất (%d px) vượt ô %d px, phần thừa bị cắt"
               % (scale, biggest, a.cell))
     k = a.cell // a.game
-    report = {"scale_to_cell": round(scale, 4), "directions": {}}
+    report = {"scale_to_cell": round(scale, 4), "dir_scale": a.dir_scale, "anchor_frame": a.anchor_frame,
+              "directions": {}}
 
+    dir_scale = {kv.split("=")[0]: float(kv.split("=")[1]) for kv in a.dir_scale.split(",") if kv}
     for name, (cells, boxes, union) in parsed.items():
         big_frames, game_frames = [], []
+        sc = scale * dir_scale.get(name, 1.0)
+        cx = None
+        if a.anchor_frame > 0:
+            ab = boxes[a.anchor_frame - 1]
+            cx = (ab[0] + ab[2]) / 2 - union[0]
         for c in cells:
             f = c.crop(union)
-            big_frames.append(place(f, a.cell, a.pad, scale, Image.BOX))
-            g = place(f, a.game, max(1, a.pad // k), scale / k, Image.LANCZOS)
+            big_frames.append(place(f, a.cell, a.pad, sc, Image.BOX, cx))
+            g = place(f, a.game, max(1, a.pad // k), sc / k, Image.LANCZOS, cx)
             game_frames.append(shrink(g, a.game))
         for tag, frames, size in (("", big_frames, a.cell), (f"_{a.game}", game_frames, a.game)):
             strip = Image.new("RGBA", (size * len(frames), size), (0, 0, 0, 0))
@@ -134,7 +150,7 @@ def main():
             "union_px": [union[2] - union[0], union[3] - union[1]],
             "height_spread_pct": round(100 * (max(heights) - min(heights)) / max(heights), 1),
             "width_spread_pct": round(100 * (max(widths) - min(widths)) / max(widths), 1),
-            "ground_spread_px_in_cell": round((max(grounds) - min(grounds)) * scale, 1),
+            "ground_spread_px_in_cell": round((max(grounds) - min(grounds)) * sc, 1),
         }
     (out / f"report_{a.action}.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
     print(json.dumps(report, ensure_ascii=False, indent=1))
