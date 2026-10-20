@@ -60,11 +60,24 @@ cộng thêm Chết. Mọi con đều đuổi và cào; chỉ 10% số sói (c�
 
 | Hành động | Trạng thái trong game | Khung / hướng | Lặp | 5 hướng vẽ |
 |---|---|---|---|---|
-| **Cào** | Gồng cào (khung 1–2) + vung vuốt và thu về (khung 3–4) | **4** | Không | **20** |
+| **Cào** | Gồng cào (khung 1–2) + vung vuốt và thu về (khung 3–4); vệt vuốt là VFX riêng | **4** | Không | **20** |
 | **Gồng** | Gồng 0,5 giây, khoá hướng, báo trước cú lao | **3** | Không, giữ khung cuối | **15** |
 | **Nghỉ** | Nghỉ 0,6 giây sau cú lao | **4** | Không | **20** |
-| **Chết** | Bị hạ | **5** | Không | **25** |
-| **Tổng giai đoạn 2** | | **16** | | **80** |
+| **Chết** | Bị hạ, nằm xuống; game làm mờ thân và phát VFX tan biến | **3** | Không | **15** |
+| **Tổng giai đoạn 2** | | **14** | | **70** |
+
+**Tách lớp nhân vật và hiệu ứng** (như timeline của Aseprite: Body, Head, VFX là các lớp riêng, lớp VFX chỉ
+có hình ở các khung đánh). Dải nhân vật chỉ vẽ con sói; lửa đuôi và phù văn phát sáng là một phần thân nên
+vẫn vẽ chung. Hiệu ứng rời khỏi thân là hình riêng, game xoay theo hướng đòn, vẽ to hơn ô nhân vật, cộng sáng
+(nền đen thành trong suốt), và một hình dùng cho mọi hướng:
+
+| VFX | Khung | Dùng khi |
+|---|---|---|
+| `vfx_claw_slash.png` | 3 | Khung 3 của Cào; vẽ cho hướng phải, game xoay |
+| `vfx_spirit_dissolve.png` | 5 | Sau khung 3 của Chết, khi game làm mờ thân |
+
+Dải Cào đã gửi (ảnh 11–15) có vệt vuốt vẽ dính vào thân. Game vẫn dùng được, nhưng nên sửa bằng prompt
+"Sửa Cào" (công cụ chỉnh ảnh, đính kèm dải cũ) để bỏ vệt vuốt.
 
 Không vẽ riêng (đã có cách khác rẻ hơn):
 
@@ -181,61 +194,62 @@ realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background
 ### Bộ prompt giai đoạn 2: Cào + Gồng + Nghỉ + Chết (chép một lần là dùng được)
 
 Sinh từ `tools/art/wolf_prompts.py --phase 2`. Bốn hành động này chạy một lần, không lặp, nên dòng
-sprite sheet thay "seamless loop" bằng "plays once from left to right and does not loop".
+sprite sheet thay "seamless loop" bằng "plays once from left to right and does not loop". Danh sách việc
+còn lại (kể cả Sửa Cào và VFX) ở `PROMPTS_TODO.md` (`wolf_prompts.py --todo`).
 
-**20 prompt** (4 hành động × 5 hướng). Mỗi khối dưới đây đã ghép đủ, chép nguyên khối dán vào công cụ tạo ảnh, đính kèm `wolf_concept.webp`.
+**20 prompt**. Mỗi khối dưới đây đã ghép đủ, chép nguyên khối dán vào công cụ tạo ảnh và đính kèm ảnh ghi ở cột "Đính kèm".
 
-| # | Tên file gửi lại | Hành động | Hướng | Khung |
-|---|---|---|---|---|
-| 1 | `wolf_up_claw.png` | Cào | Lên | 4 |
-| 2 | `wolf_upright_claw.png` | Cào | Chéo lên-phải | 4 |
-| 3 | `wolf_right_claw.png` | Cào | Phải | 4 |
-| 4 | `wolf_down_claw.png` | Cào | Xuống | 4 |
-| 5 | `wolf_downleft_claw.png` | Cào | Chéo xuống-trái | 4 |
-| 6 | `wolf_up_windup.png` | Gồng | Lên | 3 |
-| 7 | `wolf_upright_windup.png` | Gồng | Chéo lên-phải | 3 |
-| 8 | `wolf_right_windup.png` | Gồng | Phải | 3 |
-| 9 | `wolf_down_windup.png` | Gồng | Xuống | 3 |
-| 10 | `wolf_downleft_windup.png` | Gồng | Chéo xuống-trái | 3 |
-| 11 | `wolf_up_recover.png` | Nghỉ | Lên | 4 |
-| 12 | `wolf_upright_recover.png` | Nghỉ | Chéo lên-phải | 4 |
-| 13 | `wolf_right_recover.png` | Nghỉ | Phải | 4 |
-| 14 | `wolf_down_recover.png` | Nghỉ | Xuống | 4 |
-| 15 | `wolf_downleft_recover.png` | Nghỉ | Chéo xuống-trái | 4 |
-| 16 | `wolf_up_death.png` | Chết | Lên | 5 |
-| 17 | `wolf_upright_death.png` | Chết | Chéo lên-phải | 5 |
-| 18 | `wolf_right_death.png` | Chết | Phải | 5 |
-| 19 | `wolf_down_death.png` | Chết | Xuống | 5 |
-| 20 | `wolf_downleft_death.png` | Chết | Chéo xuống-trái | 5 |
+| # | Tên file gửi lại | Việc | Hướng | Khung | Đính kèm |
+|---|---|---|---|---|---|
+| 1 | `wolf_up_claw.png` | Cào | Lên | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 2 | `wolf_upright_claw.png` | Cào | Chéo lên-phải | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 3 | `wolf_right_claw.png` | Cào | Phải | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 4 | `wolf_down_claw.png` | Cào | Xuống | 4 | `wolf_concept.webp` + dải Đi chéo xuống-trái |
+| 5 | `wolf_downleft_claw.png` | Cào | Chéo xuống-trái | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 6 | `wolf_up_windup.png` | Gồng | Lên | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 7 | `wolf_upright_windup.png` | Gồng | Chéo lên-phải | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 8 | `wolf_right_windup.png` | Gồng | Phải | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 9 | `wolf_down_windup.png` | Gồng | Xuống | 3 | `wolf_concept.webp` + dải Đi chéo xuống-trái |
+| 10 | `wolf_downleft_windup.png` | Gồng | Chéo xuống-trái | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 11 | `wolf_up_recover.png` | Nghỉ | Lên | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 12 | `wolf_upright_recover.png` | Nghỉ | Chéo lên-phải | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 13 | `wolf_right_recover.png` | Nghỉ | Phải | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 14 | `wolf_down_recover.png` | Nghỉ | Xuống | 4 | `wolf_concept.webp` + dải Đi chéo xuống-trái |
+| 15 | `wolf_downleft_recover.png` | Nghỉ | Chéo xuống-trái | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 16 | `wolf_up_death.png` | Chết | Lên | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 17 | `wolf_upright_death.png` | Chết | Chéo lên-phải | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 18 | `wolf_right_death.png` | Chết | Phải | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 19 | `wolf_down_death.png` | Chết | Xuống | 3 | `wolf_concept.webp` + dải Đi chéo xuống-trái |
+| 20 | `wolf_downleft_death.png` | Chết | Chéo xuống-trái | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
 
 #### 1. Cào · Lên → `wolf_up_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high, ready to strike, 3 fast swipe across the front with three bright lavender-white claw streaks in the air, 4 paw back on the ground in the neutral pose; body stays in place
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
 ```
 
 #### 2. Cào · Chéo lên-phải → `wolf_upright_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high, ready to strike, 3 fast swipe across the front with three bright lavender-white claw streaks in the air, 4 paw back on the ground in the neutral pose; body stays in place
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
 ```
 
 #### 3. Cào · Phải → `wolf_right_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high, ready to strike, 3 fast swipe across the front with three bright lavender-white claw streaks in the air, 4 paw back on the ground in the neutral pose; body stays in place
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
 ```
 
 #### 4. Cào · Xuống → `wolf_down_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high, ready to strike, 3 fast swipe across the front with three bright lavender-white claw streaks in the air, 4 paw back on the ground in the neutral pose; body stays in place
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
 ```
 
 #### 5. Cào · Chéo xuống-trái → `wolf_downleft_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high, ready to strike, 3 fast swipe across the front with three bright lavender-white claw streaks in the air, 4 paw back on the ground in the neutral pose; body stays in place
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
 ```
 
 #### 6. Gồng · Lên → `wolf_up_windup.png`
@@ -301,37 +315,43 @@ pixel art game sprite, same character as the reference image: chibi white-lavend
 #### 16. Chết · Lên → `wolf_up_death.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation: 1 staggers with eyes squeezed shut, 2 collapses onto its side, 3 lies on the ground and the body starts to turn translucent, 4 dissolves into blue spirit flame wisps and purple rune sparks rising upward, 5 only a few small fading sparks remain where the body was
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 3 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation, character only: 1 staggers with eyes squeezed shut and ears flat, 2 collapses onto its side, 3 lies still on the ground with eyes closed, tail flame small and dim; the body stays fully opaque in every frame (the game fades it out and plays a separate dissolve effect)
 ```
 
 #### 17. Chết · Chéo lên-phải → `wolf_upright_death.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation: 1 staggers with eyes squeezed shut, 2 collapses onto its side, 3 lies on the ground and the body starts to turn translucent, 4 dissolves into blue spirit flame wisps and purple rune sparks rising upward, 5 only a few small fading sparks remain where the body was
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 3 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation, character only: 1 staggers with eyes squeezed shut and ears flat, 2 collapses onto its side, 3 lies still on the ground with eyes closed, tail flame small and dim; the body stays fully opaque in every frame (the game fades it out and plays a separate dissolve effect)
 ```
 
 #### 18. Chết · Phải → `wolf_right_death.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation: 1 staggers with eyes squeezed shut, 2 collapses onto its side, 3 lies on the ground and the body starts to turn translucent, 4 dissolves into blue spirit flame wisps and purple rune sparks rising upward, 5 only a few small fading sparks remain where the body was
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 3 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation, character only: 1 staggers with eyes squeezed shut and ears flat, 2 collapses onto its side, 3 lies still on the ground with eyes closed, tail flame small and dim; the body stays fully opaque in every frame (the game fades it out and plays a separate dissolve effect)
 ```
 
 #### 19. Chết · Xuống → `wolf_down_death.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation: 1 staggers with eyes squeezed shut, 2 collapses onto its side, 3 lies on the ground and the body starts to turn translucent, 4 dissolves into blue spirit flame wisps and purple rune sparks rising upward, 5 only a few small fading sparks remain where the body was
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 3 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation, character only: 1 staggers with eyes squeezed shut and ears flat, 2 collapses onto its side, 3 lies still on the ground with eyes closed, tail flame small and dim; the body stays fully opaque in every frame (the game fades it out and plays a separate dissolve effect)
 ```
 
 #### 20. Chết · Chéo xuống-trái → `wolf_downleft_death.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation: 1 staggers with eyes squeezed shut, 2 collapses onto its side, 3 lies on the ground and the body starts to turn translucent, 4 dissolves into blue spirit flame wisps and purple rune sparks rising upward, 5 only a few small fading sparks remain where the body was
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 3 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, defeat animation, character only: 1 staggers with eyes squeezed shut and ears flat, 2 collapses onto its side, 3 lies still on the ground with eyes closed, tail flame small and dim; the body stays fully opaque in every frame (the game fades it out and plays a separate dissolve effect)
 ```
 
-#### Prompt phủ định (dùng chung, nếu công cụ có ô "negative prompt")
+#### Prompt phủ định cho dải nhân vật (nếu công cụ có ô "negative prompt")
 
 ```
-realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background, ground shadow, cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border, frames of different sizes, character changing size between frames
+realistic, 3d render, painterly, blurry, anti-aliased edges, gradient background, ground shadow, cropped, extra limbs, extra tails, different character, different colors, text, watermark, frame, border, frames of different sizes, character changing size between frames, slash trails, claw streaks, motion lines, speed lines, impact effects, sparks away from the body
+```
+
+#### Prompt phủ định cho VFX
+
+```
+character, animal, wolf, body, face, paws, realistic, 3d render, blurry, gradient background, white background, text, watermark, frame, border, frames of different sizes
 ```
 
 
