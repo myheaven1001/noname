@@ -2,6 +2,7 @@
 
     python3 tools/art/wolf_prompts.py                # in bộ prompt giai đoạn 1 dạng Markdown
     python3 tools/art/wolf_prompts.py --phase 2      # giai đoạn 2
+    python3 tools/art/wolf_prompts.py --describe     # prompt miêu tả nhân vật (dán một lần đầu cuộc trò chuyện)
     python3 tools/art/wolf_prompts.py --todo         # chỉ các prompt chưa có ảnh trong assets/enemies/wolf
     python3 tools/art/wolf_prompts.py --json         # in mọi giai đoạn dạng JSON (trang artifact dùng)
 
@@ -19,6 +20,50 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WOLF = ROOT / "assets/enemies/wolf"
+
+# Prompt miêu tả: dán một lần ở đầu cuộc trò chuyện với công cụ tạo ảnh (kèm wolf_concept.webp) để công cụ
+# nhớ nhân vật, phong cách và quy tắc sprite sheet; sau đó mỗi prompt hành động chỉ cần dán tiếp.
+DESCRIPTION = """Character brief for every image in this conversation. Read it fully and follow it for every \
+image I ask for. The attached image is the official reference.
+
+CHARACTER: "Spirit Wolf" (Sói yêu), a small chibi spirit-beast wolf from a Chinese xianxia fantasy world. \
+Cute but mystical, alert and a little fierce when attacking.
+
+BODY: chibi proportions, the head is about 40% of the total height, short sturdy legs with round paws and \
+small lavender claws. Fluffy white fur with a soft lavender tint, shaded in pale lavender-blue, with spiky \
+tufts on the head, cheeks, chest and shoulders.
+
+HEAD: large pointed ears with deep purple inner ears and dark violet tips. Big round purple eyes with one \
+white highlight each. Small dark nose, tiny mouth.
+
+RUNES: glowing purple swirl runes: one large spiral on the forehead, one on each cheek, two on the body \
+and one on a front leg. They glow brighter when the wolf attacks or charges.
+
+ACCESSORIES: a jade bi-disc pendant (round pale jade-green disc with a hole in the middle) hanging at the \
+throat on a navy cord with small gold beads, ending in a royal-blue tassel; a navy-blue scarf with thin \
+gold trim and gold cloud patterns, tied at the neck and draped over the shoulders.
+
+TAIL: a large fluffy white tail that turns into blue spirit flame toward the tip (white at the base, \
+light blue in the middle, royal blue at the edges), with small teardrop-shaped blue flames floating \
+around the tail and body.
+
+PALETTE: white and lavender fur, purple runes and eyes, blue spirit flame, navy and gold scarf, jade-green \
+pendant, royal-blue tassel. Nothing else: no red, no black fur, no extra colors.
+
+ART STYLE: clean high-detail pixel art for a 2D top-down action game, crisp pixel edges, lavender-blue \
+outline (never black), soft cel shading, light from the upper left. Readable when shrunk to 64 pixels.
+
+CAMERA: the game camera looks down at about 30 degrees, like classic top-down action RPGs. The reference \
+image shows the three-quarter front view facing down-left. Other directions rotate the same character on \
+the spot: up = back view, up-right = three-quarter back view, right = side view, down = front view.
+
+SPRITE SHEET RULES (for every animation): one horizontal row of evenly spaced frames, every frame the same \
+size, the wolf at the same scale in every frame, feet on the same ground line, plain white background, no \
+ground shadow, no text, no frame borders. Draw only the wolf: no slash trails, motion lines or impact \
+effects, unless I explicitly ask for a separate effect sprite on a black background.
+
+KEEP THE SAME: same character, face, markings, accessories, colors and size as the reference in every \
+image, every direction and every frame. Never add or remove parts, never change the outfit."""
 
 COMMON = (
     "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, "
@@ -229,8 +274,10 @@ if __name__ == "__main__":
         items = todo()
         for p in items:
             p["attach_note"] = attach(p).replace("`", "")
-        print(json.dumps({"negative": NEGATIVE, "vfx_negative": VFX_NEGATIVE, "prompts": prompts(),
+        print(json.dumps({"description": DESCRIPTION, "negative": NEGATIVE, "vfx_negative": VFX_NEGATIVE, "prompts": prompts(),
                           "vfx": vfx_prompts(), "todo": items}, ensure_ascii=False, indent=1))
+    elif "--describe" in sys.argv:
+        print(DESCRIPTION)
     elif "--todo" in sys.argv:
         print(markdown("todo"))
     else:
