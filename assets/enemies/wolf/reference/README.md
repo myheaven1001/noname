@@ -128,6 +128,66 @@ KEEP THE SAME: same character, face, markings, accessories, colors and size as t
 Luôn đính kèm `wolf_concept.webp` làm ảnh tham chiếu nhân vật. Prompt viết bằng tiếng Anh vì đa số
 công cụ tạo ảnh hiểu tiếng Anh tốt nhất.
 
+### Prompt miêu tả hành động Cào (dán sau prompt miêu tả nhân vật)
+
+Sinh từ `tools/art/wolf_prompts.py --brief claw`. Dán một lần trong cùng cuộc trò chuyện, sau đó mỗi hướng
+chỉ cần một câu yêu cầu ngắn, đính kèm dải Đi cùng hướng.
+
+```
+Action brief: CLAW SWIPE. Use it for every claw request in this conversation, together with the character brief.
+
+PURPOSE IN THE GAME: the wolf's close-range attack. When the player is right next to it, the wolf stops, raises one front paw as a warning, then swipes once in front of itself. Frames 1-2 play during a short 0.3 second wind-up (the player should see it coming and step away), frames 3-4 play as the hit lands and the wolf recovers. The animation plays once and does not loop.
+
+4 FRAMES, KEY POSES:
+1. ANTICIPATION: the wolf plants its hind legs, leans its weight back slightly and lifts one front paw off the ground, claws spreading. Ears go back, eyes narrow, the purple runes start to glow brighter.
+2. WIND-UP PEAK: the paw is raised high, level with or above the ear, claws fully out, body coiled and leaning back, mouth slightly open showing small fangs. This is the clearest, most readable pose: exaggerate it so it reads as "about to strike" even at 64 pixels.
+3. STRIKE: the paw has swung down and across the front of the body to the opposite side, claws leading, shoulders and head turned into the swipe, body leaning forward, fur and scarf flicked by the motion. The runes are at their brightest.
+4. RECOVERY: the paw is back on the ground, body upright again, almost the neutral standing pose of the reference, runes back to normal glow. This frame must connect smoothly to the walk animation.
+
+MOTION RULES: the wolf attacks in place: the hind paws and the other front paw stay planted, the body does not travel. Only the striking leg, the shoulders, head, ears, scarf and tail flame move. The tail flame reacts: it flares up a little in frames 2-3. Keep the same size and ground line as the walk animation of the same direction.
+
+HOW EACH DIRECTION READS:
+- right (side view): the near front paw rises in front of the chest, then swipes forward and down to the right, in front of the muzzle.
+- down-left (three-quarter front, like the reference): the paw rises beside the face, then swipes down and across toward the lower left, in front of the chest.
+- down (front view, facing the camera): the paw rises beside the head toward the camera, then swipes diagonally down across the chest; we see the paw pads and claws.
+- up-right (three-quarter back view): the paw rises above the shoulder, visible past the head, then swipes forward and away from the camera toward the upper right.
+- up (back view, straight away from the camera, symmetrical like the walk animation): the paw rises above one shoulder so it is visible over the head, then swipes forward away from the camera; we mostly see the back, the raised elbow and the paw outline.
+
+NO EFFECTS: draw only the wolf. No claw streaks, slash arcs, motion lines or sparks in the air: the slash effect is a separate sprite added by the game.
+```
+
+Câu yêu cầu từng hướng:
+
+- `wolf_up_claw.png`:
+
+  ```
+  Claw swipe, facing up (back view, straight away from the camera, symmetrical), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  ```
+
+- `wolf_upright_claw.png`:
+
+  ```
+  Claw swipe, facing up-right (three-quarter back view), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  ```
+
+- `wolf_right_claw.png`:
+
+  ```
+  Claw swipe, facing right (side view), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  ```
+
+- `wolf_down_claw.png`:
+
+  ```
+  Claw swipe, facing down (front view, toward the camera, symmetrical), 4 frames, following the claw brief. Attached: the down-left walk sheet for size.
+  ```
+
+- `wolf_downleft_claw.png`:
+
+  ```
+  Claw swipe, facing down-left (three-quarter front view, same angle as the reference), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  ```
+
 ### Bộ prompt giai đoạn 1: Đi + Chạy (chép một lần là dùng được)
 
 Sinh từ `tools/art/wolf_prompts.py` (nguồn duy nhất; sửa prompt ở đó rồi chạy lại để cập nhật mục này).

@@ -3,6 +3,7 @@
     python3 tools/art/wolf_prompts.py                # in bộ prompt giai đoạn 1 dạng Markdown
     python3 tools/art/wolf_prompts.py --phase 2      # giai đoạn 2
     python3 tools/art/wolf_prompts.py --describe     # prompt miêu tả nhân vật (dán một lần đầu cuộc trò chuyện)
+    python3 tools/art/wolf_prompts.py --brief claw   # prompt miêu tả hành động Cào + câu yêu cầu ngắn từng hướng
     python3 tools/art/wolf_prompts.py --todo         # chỉ các prompt chưa có ảnh trong assets/enemies/wolf
     python3 tools/art/wolf_prompts.py --json         # in mọi giai đoạn dạng JSON (trang artifact dùng)
 
@@ -64,6 +65,68 @@ effects, unless I explicitly ask for a separate effect sprite on a black backgro
 
 KEEP THE SAME: same character, face, markings, accessories, colors and size as the reference in every \
 image, every direction and every frame. Never add or remove parts, never change the outfit."""
+
+# Prompt miêu tả hành động: dán sau prompt miêu tả nhân vật, trong cùng cuộc trò chuyện. Mô tả kỹ động tác,
+# nhịp và cách đọc ở từng hướng; sau đó mỗi hướng chỉ cần một câu yêu cầu ngắn (ACTION_REQUESTS).
+ACTION_BRIEFS = {
+    "claw": """Action brief: CLAW SWIPE. Use it for every claw request in this conversation, together with \
+the character brief.
+
+PURPOSE IN THE GAME: the wolf's close-range attack. When the player is right next to it, the wolf stops, \
+raises one front paw as a warning, then swipes once in front of itself. Frames 1-2 play during a short \
+0.3 second wind-up (the player should see it coming and step away), frames 3-4 play as the hit lands and \
+the wolf recovers. The animation plays once and does not loop.
+
+4 FRAMES, KEY POSES:
+1. ANTICIPATION: the wolf plants its hind legs, leans its weight back slightly and lifts one front paw off \
+the ground, claws spreading. Ears go back, eyes narrow, the purple runes start to glow brighter.
+2. WIND-UP PEAK: the paw is raised high, level with or above the ear, claws fully out, body coiled and \
+leaning back, mouth slightly open showing small fangs. This is the clearest, most readable pose: \
+exaggerate it so it reads as "about to strike" even at 64 pixels.
+3. STRIKE: the paw has swung down and across the front of the body to the opposite side, claws leading, \
+shoulders and head turned into the swipe, body leaning forward, fur and scarf flicked by the motion. \
+The runes are at their brightest.
+4. RECOVERY: the paw is back on the ground, body upright again, almost the neutral standing pose of the \
+reference, runes back to normal glow. This frame must connect smoothly to the walk animation.
+
+MOTION RULES: the wolf attacks in place: the hind paws and the other front paw stay planted, the body \
+does not travel. Only the striking leg, the shoulders, head, ears, scarf and tail flame move. The tail \
+flame reacts: it flares up a little in frames 2-3. Keep the same size and ground line as the walk \
+animation of the same direction.
+
+HOW EACH DIRECTION READS:
+- right (side view): the near front paw rises in front of the chest, then swipes forward and down to the \
+right, in front of the muzzle.
+- down-left (three-quarter front, like the reference): the paw rises beside the face, then swipes down and \
+across toward the lower left, in front of the chest.
+- down (front view, facing the camera): the paw rises beside the head toward the camera, then swipes \
+diagonally down across the chest; we see the paw pads and claws.
+- up-right (three-quarter back view): the paw rises above the shoulder, visible past the head, then swipes \
+forward and away from the camera toward the upper right.
+- up (back view, straight away from the camera, symmetrical like the walk animation): the paw rises above \
+one shoulder so it is visible over the head, then swipes forward away from the camera; we mostly see the \
+back, the raised elbow and the paw outline.
+
+NO EFFECTS: draw only the wolf. No claw streaks, slash arcs, motion lines or sparks in the air: the slash \
+effect is a separate sprite added by the game.""",
+}
+
+# (hướng, câu yêu cầu ngắn) cho từng hướng, dùng sau prompt miêu tả nhân vật và hành động.
+ACTION_REQUESTS = {
+    "claw": {
+        "up": "Claw swipe, facing up (back view, straight away from the camera, symmetrical), 4 frames, "
+              "following the claw brief. Attached: the walk sheet of the same direction for size and angle.",
+        "upright": "Claw swipe, facing up-right (three-quarter back view), 4 frames, following the claw brief. "
+                   "Attached: the walk sheet of the same direction for size and angle.",
+        "right": "Claw swipe, facing right (side view), 4 frames, following the claw brief. "
+                 "Attached: the walk sheet of the same direction for size and angle.",
+        "down": "Claw swipe, facing down (front view, toward the camera, symmetrical), 4 frames, following "
+                "the claw brief. Attached: the down-left walk sheet for size.",
+        "downleft": "Claw swipe, facing down-left (three-quarter front view, same angle as the reference), "
+                    "4 frames, following the claw brief. Attached: the walk sheet of the same direction for "
+                    "size and angle.",
+    },
+}
 
 COMMON = (
     "pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, "
@@ -274,10 +337,16 @@ if __name__ == "__main__":
         items = todo()
         for p in items:
             p["attach_note"] = attach(p).replace("`", "")
-        print(json.dumps({"description": DESCRIPTION, "negative": NEGATIVE, "vfx_negative": VFX_NEGATIVE, "prompts": prompts(),
+        print(json.dumps({"description": DESCRIPTION, "briefs": ACTION_BRIEFS, "requests": ACTION_REQUESTS, "negative": NEGATIVE, "vfx_negative": VFX_NEGATIVE, "prompts": prompts(),
                           "vfx": vfx_prompts(), "todo": items}, ensure_ascii=False, indent=1))
     elif "--describe" in sys.argv:
         print(DESCRIPTION)
+    elif "--brief" in sys.argv:
+        act = sys.argv[sys.argv.index("--brief") + 1]
+        print(ACTION_BRIEFS[act])
+        print()
+        for d, req in ACTION_REQUESTS[act].items():
+            print(f"[{d}] wolf_{d}_{act}.png\n{req}\n")
     elif "--todo" in sys.argv:
         print(markdown("todo"))
     else:
