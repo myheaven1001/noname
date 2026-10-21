@@ -20,7 +20,7 @@ OUT = ROOT / "sprites"
 CELL = 128  # dải gốc 256 thu một nửa: đủ nét cho cỡ 64 (thường) và 96 (tinh anh)
 SRC_CELL = 256
 ROWS = ["up", "upright", "right", "down", "downleft"]
-ACTIONS = [("walk", 6), ("run", 6), ("windup", 3), ("claw", 4), ("recover", 4)]
+ACTIONS = [("walk", 6), ("run", 6), ("windup", 3), ("claw", 5), ("recover", 4)]
 
 
 def _strip(action, d):
@@ -61,9 +61,12 @@ def main():
             frames, source = resolve(action, d)
             if source != f"{action}/{d}":
                 manifest["fallback"][f"{action}/{d}"] = source
+            # Dải Cào 4 khung cũ (trước khi có khung smear): khung chém dùng cho cả smear và quán tính.
+            pick = [0, 1, 2, 2, 3] if action == "claw" and len(frames) == 4 and n == 5 else None
             for k in range(n):
                 # Dải ngắn hơn số khung (vd. khung đứng thay tạm) thì lặp lại.
-                f = frames[k * len(frames) // n].resize((CELL, CELL), Image.LANCZOS)
+                src = pick[k] if pick else k * len(frames) // n
+                f = frames[src].resize((CELL, CELL), Image.LANCZOS)
                 atlas.alpha_composite(f, ((c0 + k) * CELL, r * CELL))
             c0 += n
     OUT.mkdir(exist_ok=True)

@@ -60,11 +60,11 @@ cộng thêm Chết. Mọi con đều đuổi và cào; chỉ 10% số sói (c�
 
 | Hành động | Trạng thái trong game | Khung / hướng | Lặp | 5 hướng vẽ |
 |---|---|---|---|---|
-| **Cào** | Gồng cào (khung 1–2) + vung vuốt và thu về (khung 3–4); vệt vuốt là VFX riêng | **4** | Không | **20** |
+| **Cào** | Gồng cào (khung 1–2), chém smear (3), quán tính (4), thu về (5); vệt vuốt là VFX riêng | **5** | Không | **25** |
 | **Gồng** | Gồng 0,5 giây, khoá hướng, báo trước cú lao | **3** | Không, giữ khung cuối | **15** |
 | **Nghỉ** | Nghỉ 0,6 giây sau cú lao | **4** | Không | **20** |
 | **Chết** | Bị hạ, nằm xuống; game làm mờ thân và phát VFX tan biến | **3** | Không | **15** |
-| **Tổng giai đoạn 2** | | **14** | | **70** |
+| **Tổng giai đoạn 2** | | **15** | | **75** |
 
 **Tách lớp nhân vật và hiệu ứng** (như timeline của Aseprite: Body, Head, VFX là các lớp riêng, lớp VFX chỉ
 có hình ở các khung đánh). Dải nhân vật chỉ vẽ con sói; lửa đuôi và phù văn phát sáng là một phần thân nên
@@ -130,30 +130,35 @@ công cụ tạo ảnh hiểu tiếng Anh tốt nhất.
 
 ### Prompt miêu tả hành động Cào (dán sau prompt miêu tả nhân vật)
 
-Sinh từ `tools/art/wolf_prompts.py --brief claw`. Dán một lần trong cùng cuộc trò chuyện, sau đó mỗi hướng
-chỉ cần một câu yêu cầu ngắn, đính kèm dải Đi cùng hướng.
+Sinh từ `tools/art/wolf_prompts.py --brief claw`. Đòn cào nặng và hiểm, 5 khung: lấy đà chậm và sâu (1–2),
+chém gần như tức thì bằng khung smear (3, game chỉ hiện ~0,06 giây), quán tính vung quá đà (4, giữ lâu
+nhất), thu về (5). Dán một lần trong cùng cuộc trò chuyện, sau đó mỗi hướng chỉ cần một câu yêu cầu ngắn,
+đính kèm dải Đi cùng hướng.
 
 ```
-Action brief: CLAW SWIPE. Use it for every claw request in this conversation, together with the character brief.
+Action brief: CLAW SWIPE, a heavy, vicious strike. Use it for every claw request in this conversation, together with the character brief.
 
-PURPOSE IN THE GAME: the wolf's close-range attack. When the player is right next to it, the wolf stops, raises one front paw as a warning, then swipes once in front of itself. Frames 1-2 play during a short 0.3 second wind-up (the player should see it coming and step away), frames 3-4 play as the hit lands and the wolf recovers. The animation plays once and does not loop.
+PURPOSE IN THE GAME: the wolf's close-range attack. When the player is right next to it, the wolf stops, coils up as a warning, then rips one front paw through the space in front of it with full body weight. Frames 1-2 play during a 0.3 second wind-up (the player must see it coming and step away). Frame 3 flashes by in a split second, frame 4 is held as the hit lands, frame 5 recovers. Plays once, no loop.
 
-4 FRAMES, KEY POSES:
-1. ANTICIPATION: the wolf plants its hind legs, leans its weight back slightly and lifts one front paw off the ground, claws spreading. Ears go back, eyes narrow, the purple runes start to glow brighter.
-2. WIND-UP PEAK: the paw is raised high, level with or above the ear, claws fully out, body coiled and leaning back, mouth slightly open showing small fangs. This is the clearest, most readable pose: exaggerate it so it reads as "about to strike" even at 64 pixels.
-3. STRIKE: the paw has swung down and across the front of the body to the opposite side, claws leading, shoulders and head turned into the swipe, body leaning forward, fur and scarf flicked by the motion. The runes are at their brightest.
-4. RECOVERY: the paw is back on the ground, body upright again, almost the neutral standing pose of the reference, runes back to normal glow. This frame must connect smoothly to the walk animation.
+WHAT MAKES IT FEEL STRONG: big contrast between a slow, deep wind-up and an explosive, almost instant strike; the whole body throws its weight into the swipe; the paw overshoots past the target; everything loose (ears, scarf, pendant, tassel, fur, tail flame) whips hard and lags behind the motion. The wolf looks angry and dangerous during the attack, not cute.
 
-MOTION RULES: the wolf attacks in place: the hind paws and the other front paw stay planted, the body does not travel. Only the striking leg, the shoulders, head, ears, scarf and tail flame move. The tail flame reacts: it flares up a little in frames 2-3. Keep the same size and ground line as the walk animation of the same direction.
+5 FRAMES, KEY POSES:
+1. ANTICIPATION (coil): the wolf drops its weight onto its hind legs and squashes down, chest low, the striking front paw lifting and pulling back, the shoulder bunched up. Ears pinned flat, eyes narrowed and glowing, lips pulled back in a snarl, the runes start to blaze.
+2. WIND-UP PEAK (maximum tension): the wolf rears up and twists away from the target, the striking paw cocked high behind the head with all claws spread like hooks, the body stretched back like a drawn bow, jaws open showing fangs. Exaggerate this silhouette so it reads as "about to strike" at 64 pixels.
+3. STRIKE (smear frame): the paw has already ripped through: drawn as a smear, the forearm and paw stretched long and slightly blurred into a curved shape along its path, several claw tips repeated along the arc of the swipe as part of the paw itself. The torso lunges forward and twists into the blow, head driving forward with the shoulder, hind legs pushing hard against the ground. Fur, scarf ends and tassel are still flying back where the body was.
+4. FOLLOW-THROUGH (overshoot): the paw has swung all the way past the front of the body to the opposite side and low, claws dug toward the ground, the body fully committed and leaning forward over the front legs. Now the scarf, pendant, tassel, ears and tail flame whip forward past the body from momentum. The tail flame bursts larger. The runes are at their brightest.
+5. RECOVERY: the wolf pulls the paw back and settles to almost the neutral standing pose of the reference, runes calming down, scarf and flame settling. Must connect smoothly to the walk animation.
+
+MOTION RULES: the attack happens on the spot: the hind paws stay where they are (they dig in, they do not step), the body only lunges and twists over them and comes back. Only the striking leg may be deformed (stretched in frame 3). Same character size and the same ground line as the walk animation of the same direction.
 
 HOW EACH DIRECTION READS:
-- right (side view): the near front paw rises in front of the chest, then swipes forward and down to the right, in front of the muzzle.
-- down-left (three-quarter front, like the reference): the paw rises beside the face, then swipes down and across toward the lower left, in front of the chest.
-- down (front view, facing the camera): the paw rises beside the head toward the camera, then swipes diagonally down across the chest; we see the paw pads and claws.
-- up-right (three-quarter back view): the paw rises above the shoulder, visible past the head, then swipes forward and away from the camera toward the upper right.
-- up (back view, straight away from the camera, symmetrical like the walk animation): the paw rises above one shoulder so it is visible over the head, then swipes forward away from the camera; we mostly see the back, the raised elbow and the paw outline.
+- right (side view): the near front paw cocks back above the head, then rips forward and down to the right in front of the muzzle, ending low in front of the chest.
+- down-left (three-quarter front, like the reference): the paw cocks back beside the ear, then rips down and across toward the lower left in front of the chest.
+- down (front view, facing the camera): the paw cocks high beside the head showing the pads and hooked claws, then rips diagonally down across the chest toward the camera; strong foreshortening, the paw looks big in frames 3-4.
+- up-right (three-quarter back view): the paw cocks back above the shoulder, then rips forward and away from the camera toward the upper right; we see the shoulder blade and back twisting hard.
+- up (back view, straight away from the camera, symmetrical like the walk animation): the paw cocks up above one shoulder so it is visible over the head, then rips forward away from the camera; the whole back twists and the scarf whips sideways.
 
-NO EFFECTS: draw only the wolf. No claw streaks, slash arcs, motion lines or sparks in the air: the slash effect is a separate sprite added by the game.
+NO SEPARATE EFFECTS: draw only the wolf. The smear in frame 3 is part of the paw, in the wolf's own colors. No glowing slash arcs, streaks in empty air, motion lines or sparks: the slash effect is a separate sprite added by the game.
 ```
 
 Câu yêu cầu từng hướng:
@@ -161,31 +166,31 @@ Câu yêu cầu từng hướng:
 - `wolf_up_claw.png`:
 
   ```
-  Claw swipe, facing up (back view, straight away from the camera, symmetrical), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  Claw swipe, facing up (back view, straight away from the camera, symmetrical), 5 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
   ```
 
 - `wolf_upright_claw.png`:
 
   ```
-  Claw swipe, facing up-right (three-quarter back view), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  Claw swipe, facing up-right (three-quarter back view), 5 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
   ```
 
 - `wolf_right_claw.png`:
 
   ```
-  Claw swipe, facing right (side view), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  Claw swipe, facing right (side view), 5 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
   ```
 
 - `wolf_down_claw.png`:
 
   ```
-  Claw swipe, facing down (front view, toward the camera, symmetrical), 4 frames, following the claw brief. Attached: the down-left walk sheet for size.
+  Claw swipe, facing down (front view, toward the camera, symmetrical), 5 frames, following the claw brief. Attached: the down-left walk sheet for size.
   ```
 
 - `wolf_downleft_claw.png`:
 
   ```
-  Claw swipe, facing down-left (three-quarter front view, same angle as the reference), 4 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
+  Claw swipe, facing down-left (three-quarter front view, same angle as the reference), 5 frames, following the claw brief. Attached: the walk sheet of the same direction for size and angle.
   ```
 
 ### Bộ prompt giai đoạn 1: Đi + Chạy (chép một lần là dùng được)
@@ -293,11 +298,11 @@ còn lại (kể cả Sửa Cào và VFX) ở `PROMPTS_TODO.md` (`wolf_prompts.p
 
 | # | Tên file gửi lại | Việc | Hướng | Khung | Đính kèm |
 |---|---|---|---|---|---|
-| 1 | `wolf_up_claw.png` | Cào | Lên | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
-| 2 | `wolf_upright_claw.png` | Cào | Chéo lên-phải | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
-| 3 | `wolf_right_claw.png` | Cào | Phải | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
-| 4 | `wolf_down_claw.png` | Cào | Xuống | 4 | `wolf_concept.webp` + dải Đi chéo xuống-trái |
-| 5 | `wolf_downleft_claw.png` | Cào | Chéo xuống-trái | 4 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 1 | `wolf_up_claw.png` | Cào | Lên | 5 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 2 | `wolf_upright_claw.png` | Cào | Chéo lên-phải | 5 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 3 | `wolf_right_claw.png` | Cào | Phải | 5 | `wolf_concept.webp` + dải Đi cùng hướng |
+| 4 | `wolf_down_claw.png` | Cào | Xuống | 5 | `wolf_concept.webp` + dải Đi chéo xuống-trái |
+| 5 | `wolf_downleft_claw.png` | Cào | Chéo xuống-trái | 5 | `wolf_concept.webp` + dải Đi cùng hướng |
 | 6 | `wolf_up_windup.png` | Gồng | Lên | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
 | 7 | `wolf_upright_windup.png` | Gồng | Chéo lên-phải | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
 | 8 | `wolf_right_windup.png` | Gồng | Phải | 3 | `wolf_concept.webp` + dải Đi cùng hướng |
@@ -317,31 +322,31 @@ còn lại (kể cả Sửa Cào và VFX) ở `PROMPTS_TODO.md` (`wolf_prompts.p
 #### 1. Cào · Lên → `wolf_up_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, back view, the wolf faces straight away from the camera, we see the back of the head, both ears from behind, the scarf knot on the back, tail flame rising in front of the body toward the camera, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, heavy, vicious claw swipe at close range, character only with no slash effect, slow deep wind-up then an explosive strike with full body weight: 1 coils down onto the hind legs, striking paw pulled back, ears pinned, snarling, runes blazing, 2 rears up and twists away, paw cocked high behind the head with hooked claws spread, body stretched back like a drawn bow, fangs showing, 3 smear frame: the paw rips through, forearm and paw stretched and blurred along the curved path with claw tips repeated along the arc as part of the paw, torso lunging and twisting into the blow, fur and scarf still flying back, 4 follow-through: paw overshoots past the body to the opposite side and low, body leaning over the front legs, scarf, pendant, ears and tail flame whipping forward from momentum, tail flame bursting, 5 settles back to the neutral pose; hind paws stay planted, angry and dangerous expression, no glowing streaks in empty air (the slash effect is a separate sprite)
 ```
 
 #### 2. Cào · Chéo lên-phải → `wolf_upright_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter back view, body turned up and to the right, head turned away from the camera, one ear and part of the cheek visible, tail flame on the lower left, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, heavy, vicious claw swipe at close range, character only with no slash effect, slow deep wind-up then an explosive strike with full body weight: 1 coils down onto the hind legs, striking paw pulled back, ears pinned, snarling, runes blazing, 2 rears up and twists away, paw cocked high behind the head with hooked claws spread, body stretched back like a drawn bow, fangs showing, 3 smear frame: the paw rips through, forearm and paw stretched and blurred along the curved path with claw tips repeated along the arc as part of the paw, torso lunging and twisting into the blow, fur and scarf still flying back, 4 follow-through: paw overshoots past the body to the opposite side and low, body leaning over the front legs, scarf, pendant, ears and tail flame whipping forward from momentum, tail flame bursting, 5 settles back to the neutral pose; hind paws stay planted, angry and dangerous expression, no glowing streaks in empty air (the slash effect is a separate sprite)
 ```
 
 #### 3. Cào · Phải → `wolf_right_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, side view facing right, full profile, only the near eye visible, pendant hanging under the chin, tail flame behind on the left, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, heavy, vicious claw swipe at close range, character only with no slash effect, slow deep wind-up then an explosive strike with full body weight: 1 coils down onto the hind legs, striking paw pulled back, ears pinned, snarling, runes blazing, 2 rears up and twists away, paw cocked high behind the head with hooked claws spread, body stretched back like a drawn bow, fangs showing, 3 smear frame: the paw rips through, forearm and paw stretched and blurred along the curved path with claw tips repeated along the arc as part of the paw, torso lunging and twisting into the blow, fur and scarf still flying back, 4 follow-through: paw overshoots past the body to the opposite side and low, body leaning over the front legs, scarf, pendant, ears and tail flame whipping forward from momentum, tail flame bursting, 5 settles back to the neutral pose; hind paws stay planted, angry and dangerous expression, no glowing streaks in empty air (the slash effect is a separate sprite)
 ```
 
 #### 4. Cào · Xuống → `wolf_down_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, front view facing straight toward the camera, symmetrical, both eyes and the forehead rune clearly visible, pendant centered on the chest, tail flame visible behind the body above the back, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, heavy, vicious claw swipe at close range, character only with no slash effect, slow deep wind-up then an explosive strike with full body weight: 1 coils down onto the hind legs, striking paw pulled back, ears pinned, snarling, runes blazing, 2 rears up and twists away, paw cocked high behind the head with hooked claws spread, body stretched back like a drawn bow, fangs showing, 3 smear frame: the paw rips through, forearm and paw stretched and blurred along the curved path with claw tips repeated along the arc as part of the paw, torso lunging and twisting into the blow, fur and scarf still flying back, 4 follow-through: paw overshoots past the body to the opposite side and low, body leaning over the front legs, scarf, pendant, ears and tail flame whipping forward from momentum, tail flame bursting, 5 settles back to the neutral pose; hind paws stay planted, angry and dangerous expression, no glowing streaks in empty air (the slash effect is a separate sprite)
 ```
 
 #### 5. Cào · Chéo xuống-trái → `wolf_downleft_claw.png`
 
 ```
-pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 4 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, claw swipe attack at close range, character only with no slash effect: 1 rears up slightly and raises one front paw with claws out, runes glowing, 2 paw pulled back high above the head, ready to strike, 3 paw fully swung down and across the front of the body, claws extended, body leaning into the swipe, 4 paw back on the ground in the neutral pose; body stays in place, no claw streaks or trails in the air (the slash effect is a separate sprite)
+pixel art game sprite, same character as the reference image: chibi white-lavender spirit wolf, large purple eyes with a white highlight, glowing purple swirl runes on forehead, cheeks and body, jade bi-disc pendant on a navy cord with gold beads and a blue tassel, navy scarf with gold trim, large pointed ears with purple inner ear, fluffy tail turning into blue spirit flame with small floating flames, lavender-blue outline (no black outline), same palette, same proportions (head about 40% of body height), plain white background, no ground shadow, full body, centered, no text, three-quarter front view, body turned down and to the left, same camera angle as the reference image, sprite sheet, 5 frames in one horizontal row, evenly spaced, every frame the same size and the same character scale, feet on the same ground line in every frame, plays once from left to right and does not loop, heavy, vicious claw swipe at close range, character only with no slash effect, slow deep wind-up then an explosive strike with full body weight: 1 coils down onto the hind legs, striking paw pulled back, ears pinned, snarling, runes blazing, 2 rears up and twists away, paw cocked high behind the head with hooked claws spread, body stretched back like a drawn bow, fangs showing, 3 smear frame: the paw rips through, forearm and paw stretched and blurred along the curved path with claw tips repeated along the arc as part of the paw, torso lunging and twisting into the blow, fur and scarf still flying back, 4 follow-through: paw overshoots past the body to the opposite side and low, body leaning over the front legs, scarf, pendant, ears and tail flame whipping forward from momentum, tail flame bursting, 5 settles back to the neutral pose; hind paws stay planted, angry and dangerous expression, no glowing streaks in empty air (the slash effect is a separate sprite)
 ```
 
 #### 6. Gồng · Lên → `wolf_up_windup.png`

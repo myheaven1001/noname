@@ -12,14 +12,17 @@ const ATLAS := "res://sprites/wolf_atlas.png"
 const CELL := 128
 # Phải khớp tools/art/wolf_atlas.py: hàng = hướng vẽ, cột = khung của các hành động nối nhau.
 const WOLF_ROWS := 5  # up, upright, right, down, downleft
-const COLS := 23
+const COLS := 24
 const ROWS := WOLF_ROWS + 1
 const PLACEHOLDER_ROW := WOLF_ROWS
 const WALK := 0  # 6 khung
 const RUN := 6  # 6 khung
 const WINDUP := 12  # 3 khung
-const CLAW := 15  # 4 khung: 2 gồng + 2 vung vuốt
-const RECOVER := 19  # 4 khung
+const CLAW := 15  # 5 khung: 2 gồng, 1 smear (cú chém), 1 quán tính, 1 thu về
+const RECOVER := 20  # 4 khung
+# Nhịp sau khi gồng cào: smear rất ngắn để cú chém thấy nhanh và mạnh, khung quán tính giữ lâu nhất.
+const CLAW_SMEAR_END := 0.15
+const CLAW_FOLLOW_END := 0.6
 # 8 cung theo EnemyStore.heading (phải, xuống-phải, xuống, xuống-trái, trái, lên-trái, lên, lên-phải)
 # → hàng atlas và có lật ngang không (3 hướng phía trái lật từ phía phải).
 const SECTOR_ROW := [2, 4, 3, 4, 2, 1, 0, 1]
@@ -159,7 +162,8 @@ static func fill_cells(w: World, buf: PackedFloat32Array) -> void:
 				EnemyStore.S_CLAW_WINDUP:
 					col = CLAW + _progress_frame(timer[i], db.t_claw_windup[t], 2)
 				EnemyStore.S_CLAW:
-					col = CLAW + 2 + _progress_frame(timer[i], db.t_claw_recover[t], 2)
+					var done := 1.0 - timer[i] / maxf(db.t_claw_recover[t], 0.001)
+					col = CLAW + (2 if done < CLAW_SMEAR_END else (3 if done < CLAW_FOLLOW_END else 4))
 			lift_y = lift[t]
 		else:
 			size = radius[t] * 2.4
